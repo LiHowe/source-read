@@ -131,6 +131,8 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 为对象定义一个响应式属性
+ * 双向绑定核心
  */
 export function defineReactive (
   obj: Object,
@@ -139,20 +141,28 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+  // 初始化依赖
   const dep = new Dep()
-
+  // 获取对象对应属性描述符对象
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 如果该属性不可配置(configurable 为 false)
+  /**
+   * Object.freeze()
+   * Object.defineProperty(obj, key, { configurable: false })
+   */
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
+  // 如果属性已经定义了getter和setter则调用get和set
   const getter = property && property.get
   const setter = property && property.set
+  // 方法入参只有obj和key,且属性有setter或者没有getter,直接返回对象属性值
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  //FIXME: 读到这里了
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,

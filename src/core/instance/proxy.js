@@ -24,6 +24,9 @@ if (process.env.NODE_ENV !== 'production') {
     )
   }
 
+  /**
+  * 以 _ 或 $ 开头的 property 不会被 Vue 实例代理，因为它们可能和 Vue 内置的 property、API 方法冲突
+  */
   const warnReservedPrefix = (target, key) => {
     warn(
       `Property "${key}" must be accessed with "$data.${key}" because ` +
@@ -33,7 +36,7 @@ if (process.env.NODE_ENV !== 'production') {
       target
     )
   }
-
+  // 判断环境是否原生支持Proxy
   const hasProxy =
     typeof Proxy !== 'undefined' && isNative(Proxy)
 
@@ -74,8 +77,11 @@ if (process.env.NODE_ENV !== 'production') {
       return target[key]
     }
   }
-
+  /**
+   * 为组件实例添加代理(Proxy -- ES6+)
+   */
   initProxy = function initProxy (vm) {
+    // 如果支持Proxy
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options

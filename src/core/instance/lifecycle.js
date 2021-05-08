@@ -29,30 +29,39 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+/**
+ * 初始化属性
+ * 虽然方法名称叫初始化生命周期, 但实质上是对组件属性的初始化
+ * @param {Component}} vm 
+ */
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
   // locate first non-abstract parent
+  // 组件父级实例
   let parent = options.parent
+  // 如果有父级且当前组件配置项未配置abstract
+  //? 什么时候会配置abstract, abstract有什么用
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
+    // 将当前组件实例放入父组件的$children中进行存储
     parent.$children.push(vm)
   }
-
-  vm.$parent = parent
-  vm.$root = parent ? parent.$root : vm
-
+  // 下面为属性赋值
+  vm.$parent = parent // 父组件
+  vm.$root = parent ? parent.$root : vm // 根节点, 如果有父组件会一直向上级查找
+  // 初始化子组件列表
   vm.$children = []
   vm.$refs = {}
-
-  vm._watcher = null
-  vm._inactive = null
-  vm._directInactive = false
-  vm._isMounted = false
-  vm._isDestroyed = false
-  vm._isBeingDestroyed = false
+  // 初始化内置属性
+  vm._watcher = null //? 观察者
+  vm._inactive = null //? 非活跃的
+  vm._directInactive = false //? 直接非活跃的??
+  vm._isMounted = false // 是否挂载过
+  vm._isDestroyed = false // 是否销毁过
+  vm._isBeingDestroyed = false // 是否准备销毁
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {

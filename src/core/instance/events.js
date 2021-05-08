@@ -9,10 +9,18 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
+/**
+ * 初始化事件
+ * @param {Component} vm 
+ */
 export function initEvents (vm: Component) {
+  // 创建一个没有原型(__proto__)的空对象
   vm._events = Object.create(null)
+  // 默认不含有钩子事件
   vm._hasHookEvent = false
   // init parent attached events
+  // 初始化父组件附加事件
+  //? 什么时候会有值?
   const listeners = vm.$options._parentListeners
   if (listeners) {
     updateComponentListeners(vm, listeners)

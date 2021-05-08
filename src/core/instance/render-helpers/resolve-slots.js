@@ -4,6 +4,7 @@ import type VNode from 'core/vdom/vnode'
 
 /**
  * Runtime helper for resolving raw children VNodes into a slot object.
+ * 运行时将原始子VNodes解析为插槽(slot)对象
  */
 export function resolveSlots (
   children: ?Array<VNode>,
@@ -12,6 +13,7 @@ export function resolveSlots (
   if (!children || !children.length) {
     return {}
   }
+  //* 下面代码待写测试场景
   const slots = {}
   for (let i = 0, l = children.length; i < l; i++) {
     const child = children[i]

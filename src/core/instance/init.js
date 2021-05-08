@@ -23,7 +23,7 @@ export function initMixin (Vue: Class<Component>) {
    */
   Vue.prototype._init = function (options?: Object) {
     // 当前组件实例
-    const vm: Component = this
+    const vm: Component = this 
     // 唯一id, 从0开始递增
     vm._uid = uid++
     // 用于非生产环境的性能测试
@@ -39,11 +39,11 @@ export function initMixin (Vue: Class<Component>) {
     vm._isVue = true
     // 合并选项(options)
     if (options && options._isComponent) {
-      // 内置组件分支
-      // 对内置组件实例化进行优化.因为动态选项合并十分缓慢,并且内置组件没有需要特殊处理的选项
+      // Vue.component情况
+      // 对内置组件实例化进行优化.因为动态配置合并(TODO: 具体指的是什么呢)十分缓慢,并且内置组件没有需要特殊处理的选项
       initInternalComponent(vm, options)
     } else {
-      // 自定义组件分支
+      // new Vue情况
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
@@ -51,6 +51,7 @@ export function initMixin (Vue: Class<Component>) {
       )
     }
     /* istanbul ignore else */
+    // 非生产环境为组件实例添加代理
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
     } else {
@@ -58,8 +59,11 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
+    // 初始化属性
     initLifecycle(vm)
+    // 初始化事件
     initEvents(vm)
+    // 
     initRender(vm)
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
@@ -81,31 +85,47 @@ export function initMixin (Vue: Class<Component>) {
 }
 
 /**
- * 内置组件实例化
+ * 组件实例化, 给组件实例的$options赋值
  * @param {Component}} Vue实例
- * @param {InternalComponentOptions} options 选项
+ * @param {InternalComponentOptions} options 设置
  */
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  // 初始化组件$options
+  // opts.__proto__ = vm.$options.__proto__  = vm.constructor.options
+  // 定义opts只是为了好写一些, 相当于给vm.$options起别名
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
+  // 分别赋值比动态枚举要快很多
   const parentVnode = options._parentVnode
+  // 父级实例
   opts.parent = options.parent
+  // 父级vNode
   opts._parentVnode = parentVnode
-
   const vnodeComponentOptions = parentVnode.componentOptions
+  // prop
   opts.propsData = vnodeComponentOptions.propsData
+  // 事件监听
   opts._parentListeners = vnodeComponentOptions.listeners
+  // TODO: 不知道
   opts._renderChildren = vnodeComponentOptions.children
+  // 当前组件标签名称
   opts._componentTag = vnodeComponentOptions.tag
-
+  // 如果设置中有render属性则使用提供的渲染函数进行渲染
   if (options.render) {
     opts.render = options.render
+    // TODO: 静态渲染函数是啥?
     opts.staticRenderFns = options.staticRenderFns
   }
 }
 
+/**
+ * 处理初始化配置
+ * @param {*} Ctor 
+ * @returns 
+ */
 export function resolveConstructorOptions (Ctor: Class<Component>) {
   let options = Ctor.options
+  // 如果有继承, TODO: 需确认触发条件
   if (Ctor.super) {
     const superOptions = resolveConstructorOptions(Ctor.super)
     const cachedSuperOptions = Ctor.superOptions

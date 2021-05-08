@@ -294,6 +294,7 @@ export function validateComponentName (name: string) {
 /**
  * Ensure all props option syntax are normalized into the
  * Object-based format.
+ * 确保配置中所有prop的定义语法是对象格式
  */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
@@ -384,16 +385,19 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 /**
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
+ * 将两个配置对象合并为一个新的对象
+ * 是用于实例化和继承的核心工具
  */
 export function mergeOptions (
   parent: Object,
   child: Object,
   vm?: Component
 ): Object {
+  // 开发环境下校验组件名
   if (process.env.NODE_ENV !== 'production') {
     checkComponents(child)
   }
-
+  // 初始化的时候child参数是我们创建的Vue实例
   if (typeof child === 'function') {
     child = child.options
   }
