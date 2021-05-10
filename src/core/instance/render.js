@@ -53,6 +53,7 @@ export function initRender (vm: Component) {
   // 暴露 $attrs 和 $listeners 为了方便高阶组件的创建
   // $attrs 和 $listener 是响应式的
   if (process.env.NODE_ENV !== 'production') {
+    // 传入自定义setter, 将$attrs和$listeners设置为只读(更新子组件的时候可以赋值)
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, () => {
       !isUpdatingChildComponent && warn(`$attrs is readonly.`, vm)
     }, true)

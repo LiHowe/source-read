@@ -40,7 +40,7 @@ export function initMixin (Vue: Class<Component>) {
     // 合并选项(options)
     if (options && options._isComponent) {
       // Vue.component情况
-      // 对内置组件实例化进行优化.因为动态配置合并(TODO: 具体指的是什么呢)十分缓慢,并且内置组件没有需要特殊处理的选项
+      // 初始化组件
       initInternalComponent(vm, options)
     } else {
       // new Vue情况
@@ -57,19 +57,27 @@ export function initMixin (Vue: Class<Component>) {
     } else {
       vm._renderProxy = vm
     }
+    // --- 进入beforeCreate生命周期 ---
     // expose real self
     vm._self = vm
     // 初始化属性
     initLifecycle(vm)
     // 初始化事件
     initEvents(vm)
-    // 
+    // 初始化渲染相关属性 $createElement $slot $scopedSlots $vnode
     initRender(vm)
     callHook(vm, 'beforeCreate')
+    // --- 结束beforeCreate生命周期, 实例初始化结束 ---
+
+    // --- 进入created生命周期 ---
+    // 解析inject
     initInjections(vm) // resolve injections before data/props
+    // 初始化props -> methods -> data -> computed -> watch
     initState(vm)
+    // 初始化provide
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
+    // --- 结束created生命周期, 实例初始化结束 ---
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {

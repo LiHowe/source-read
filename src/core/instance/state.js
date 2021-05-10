@@ -46,6 +46,11 @@ export function proxy (target: Object, sourceKey: string, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+/**
+ * 初始化组件状态
+ * props, methods, data, computed, watch, _watchers
+ * @param {Component} vm 
+ */
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
@@ -54,6 +59,7 @@ export function initState (vm: Component) {
   if (opts.data) {
     initData(vm)
   } else {
+    // 如果没有data定义, 则使用空对象作为根Data
     observe(vm._data = {}, true /* asRootData */)
   }
   if (opts.computed) initComputed(vm, opts.computed)
@@ -62,22 +68,39 @@ export function initState (vm: Component) {
   }
 }
 
+/**
+ * 初始化props
+ * _props
+ * _propKeys -- 用于缓存props的key
+ * @param {Component} vm 实例
+ * @param {Object} propsOptions props
+ */
 function initProps (vm: Component, propsOptions: Object) {
+  //? propsData来自于哪里, 用户定义吗?
   const propsData = vm.$options.propsData || {}
+  // 初始化_props
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
   // instead of dynamic object key enumeration.
+  // 缓存prop的key为了 未来props更新的时候可以使用迭代数组的方式来代替对象属性枚举
   const keys = vm.$options._propKeys = []
+  // 判断该实例是否是根实例
   const isRoot = !vm.$parent
   // root instance props should be converted
+  // 根实例的props应该被转换
   if (!isRoot) {
+    // 如果不是根实例, 关闭数据观测
     toggleObserving(false)
   }
+  // 遍历props
   for (const key in propsOptions) {
+    // 缓存key
     keys.push(key)
+    // 验证prop
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
+      // 将key从驼峰形式转为-连字符形式
       const hyphenatedKey = hyphenate(key)
       if (isReservedAttribute(hyphenatedKey) ||
           config.isReservedAttr(hyphenatedKey)) {
@@ -86,6 +109,7 @@ function initProps (vm: Component, propsOptions: Object) {
           vm
         )
       }
+      // 非生产环境对prop赋值的时候显示警告
       defineReactive(props, key, value, () => {
         if (!isRoot && !isUpdatingChildComponent) {
           warn(
@@ -98,23 +122,34 @@ function initProps (vm: Component, propsOptions: Object) {
         }
       })
     } else {
+      // 将prop定义为响应式
       defineReactive(props, key, value)
     }
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 在Vue.extend()时候静态props已经在组件原型上被代理
+    // 如果实例没有可枚举的key
     if (!(key in vm)) {
       proxy(vm, `_props`, key)
     }
   }
+  // 再次打开数据观测
   toggleObserving(true)
 }
 
+/**
+ * 初始化data
+ * _data
+ * @param {Component} vm 
+ */
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 如果data是工厂函数则调用函数结果作为data, 否则直接使用
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
+    // 如果data不是对象
   if (!isPlainObject(data)) {
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
@@ -128,8 +163,10 @@ function initData (vm: Component) {
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // 逐个遍历data的key
   while (i--) {
     const key = keys[i]
+    // 如果key与方法中有同名
     if (process.env.NODE_ENV !== 'production') {
       if (methods && hasOwn(methods, key)) {
         warn(
@@ -138,6 +175,7 @@ function initData (vm: Component) {
         )
       }
     }
+    // 如果key与props中有同名
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !== 'production' && warn(
         `The data property "${key}" is already declared as a prop. ` +
@@ -148,7 +186,7 @@ function initData (vm: Component) {
       proxy(vm, `_data`, key)
     }
   }
-  // observe data
+  // 观测 data
   observe(data, true /* asRootData */)
 }
 
@@ -167,24 +205,34 @@ export function getData (data: Function, vm: Component): any {
 
 const computedWatcherOptions = { lazy: true }
 
+/**
+ * 初始化计算属性
+ * @param {Component} vm Vue组件
+ * @param {Object} computed 组件声明的computed
+ */
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
   // computed properties are just getters during SSR
+  // 是否是服务器渲染
   const isSSR = isServerRendering()
 
   for (const key in computed) {
+    // 逐个获取用户定义的computed
     const userDef = computed[key]
+    // 如果computed是方法,则使用该方法作为getter, 如果是对象则使用对象get对应的方法作为getter
     const getter = typeof userDef === 'function' ? userDef : userDef.get
+    // 如果没有定义get, ⚠️ 非生产环境下警告提醒用户
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
         `Getter is missing for computed property "${key}".`,
         vm
       )
     }
-
+    // 如果不是SSR
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // 📌 为计算属性创建一个内部的watcher, 即 computed功能是通过watcher实现
       watchers[key] = new Watcher(
         vm,
         getter || noop,

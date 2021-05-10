@@ -343,16 +343,27 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+/**
+ * 调用钩子函数
+ * @param {Component} vm 组件
+ * @param {String} hook 生命周期钩子名称
+ */
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
+  // https://github.com/vuejs/vue/issues/7573
+  // Dep.target = undefined
   pushTarget()
+  // 获取组件的beforeCreate方法
   const handlers = vm.$options[hook]
   const info = `${hook} hook`
   if (handlers) {
+    // Function.length为获取函数形参个数
+    //? 钩子函数是数组? 难道是mixin的时候用的吗?
     for (let i = 0, j = handlers.length; i < j; i++) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+  // @hook:钩子函数
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }

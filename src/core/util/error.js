@@ -33,6 +33,15 @@ export function handleError (err: Error, vm: any, info: string) {
   }
 }
 
+/**
+ * 方法调用
+ * @param {Function} handler 待调用方法
+ * @param {any} context 上下文
+ * @param {null | any[]} args 方法参数
+ * @param {any} vm vue实例
+ * @param {string} info 信息
+ * @returns 
+ */
 export function invokeWithErrorHandling (
   handler: Function,
   context: any,
@@ -42,8 +51,11 @@ export function invokeWithErrorHandling (
 ) {
   let res
   try {
+    // 调用方法
     res = args ? handler.apply(context, args) : handler.call(context)
+    // 如果返回值是未被处理的非Vue实例的Promise
     if (res && !res._isVue && isPromise(res) && !res._handled) {
+      // 捕获异常
       res.catch(e => handleError(e, vm, info + ` (Promise/async)`))
       // issue #9511
       // avoid catch triggering multiple times when nested calls

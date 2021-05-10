@@ -18,6 +18,14 @@ type PropOptions = {
   validator: ?Function
 };
 
+/**
+ * 验证prop
+ * @param {String} key prop key
+ * @param {Object} propOptions props对象
+ * @param {Object} propsData propsData对象
+ * @param {Component} vm vue实例
+ * @returns {any}
+ */
 export function validateProp (
   key: string,
   propOptions: Object,
