@@ -43,6 +43,14 @@ export default class Watcher {
   getter: Function;
   value: any;
 
+  /**
+   * Watcher构造函数
+   * @param {Component} vm 实例
+   * @param {String | Function}} expOrFn 表达式或者方法
+   * @param {Function} cb 回调函数
+   * @param {Object} options 配置项
+   * @param {Boolean} isRenderWatcher 是否是渲染器监听器
+   */
   constructor (
     vm: Component,
     expOrFn: string | Function,
@@ -57,10 +65,12 @@ export default class Watcher {
     vm._watchers.push(this)
     // options
     if (options) {
+      // 默认皆为false, before为Function
       this.deep = !!options.deep
       this.user = !!options.user
       this.lazy = !!options.lazy
       this.sync = !!options.sync
+      // 在实例beforeUpdate的时候会传入, 用于调用beforeUpdate钩子函数
       this.before = options.before
     } else {
       this.deep = this.user = this.lazy = this.sync = false
@@ -68,18 +78,21 @@ export default class Watcher {
     this.cb = cb
     this.id = ++uid // uid for batching
     this.active = true
-    this.dirty = this.lazy // for lazy watchers
+    this.dirty = this.lazy // for lazy watchers -> computed
     this.deps = []
     this.newDeps = []
     this.depIds = new Set()
     this.newDepIds = new Set()
+    // 观测对象表达式
     this.expression = process.env.NODE_ENV !== 'production'
       ? expOrFn.toString()
       : ''
     // parse expression for getter
     if (typeof expOrFn === 'function') {
+      // 如果传入的是方法, 直接作为 getter
       this.getter = expOrFn
     } else {
+      // 如果传入的是字符串
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
@@ -91,6 +104,7 @@ export default class Watcher {
         )
       }
     }
+    // 如果不是懒加载的, 取值直接调用get方法取值
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -98,8 +112,10 @@ export default class Watcher {
 
   /**
    * Evaluate the getter, and re-collect dependencies.
+   * 计算getter并重新收集依赖
    */
   get () {
+    // 当前watcher入栈
     pushTarget(this)
     let value
     const vm = this.vm

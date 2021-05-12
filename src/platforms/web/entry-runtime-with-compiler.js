@@ -19,9 +19,13 @@ Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 挂载, 如果el为字符串则调用document.querySelector进行查找元素
+  // 如果未查找到元素, Vue会创建一个div元素
+  // 如果el为元素, 则直接使用该元素
   el = el && query(el)
-
+  h_log({ stage: 'call $mount fn', msg: 'el is', objs: el})
   /* istanbul ignore if */
+  // 不允许挂载到body 和 document上
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
@@ -31,7 +35,9 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  // 将template转换为render方法
   if (!options.render) {
+    h_log({ stage: '!options.render'})
     let template = options.template
     if (template) {
       if (typeof template === 'string') {

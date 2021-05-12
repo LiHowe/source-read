@@ -18,18 +18,18 @@
             }
         },
         provide: ['haha'],
-        components: {
-            demo: Vue.component('demo', {
-                props: {
-                    m: String
-                },
-                render(h) {
-                    return h('div', {
-                        class: 'child'
-                    }, this.m)
-                }
-            })
-        },
+        // components: {
+        //     demo: Vue.component('demo', {
+        //         props: {
+        //             m: String
+        //         },
+        //         render(h) {
+        //             return h('div', {
+        //                 class: 'child'
+        //             }, this.m)
+        //         }
+        //     })
+        // },
         render(h) {
             return h('div', [
                 h('demo')

@@ -5,15 +5,23 @@ import { noop } from 'shared/util'
 import { handleError } from './error'
 import { isIE, isIOS, isNative } from './env'
 
+// 是否正在使用微任务
 export let isUsingMicroTask = false
 
+// 定义回调队列
 const callbacks = []
+// 是否在等待
 let pending = false
 
+/**
+ * 清洗回调队列
+ */
 function flushCallbacks () {
   pending = false
+  // 拷贝此刻回调队列, 避免回调队列在此刻还在赋值
   const copies = callbacks.slice(0)
   callbacks.length = 0
+  // 依次调用回调函数
   for (let i = 0; i < copies.length; i++) {
     copies[i]()
   }
@@ -39,6 +47,10 @@ let timerFunc
 // completely stops working after triggering a few times... so, if native
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
+// nextTick主要利用了微任务队列
+/**
+ * 首先尝试Promise方式
+ */
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   timerFunc = () => {
@@ -48,6 +60,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     // microtask queue but the queue isn't being flushed, until the browser
     // needs to do some other work, e.g. handle a timer. Therefore we can
     // "force" the microtask queue to be flushed by adding an empty timer.
+    // IOS情况特殊处理
     if (isIOS) setTimeout(noop)
   }
   isUsingMicroTask = true
@@ -74,6 +87,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   // Fallback to setImmediate.
   // Technically it leverages the (macro) task queue,
   // but it is still a better choice than setTimeout.
+  // 技术上setImmediate是宏任务队列, 但是仍然比setTimeout好
   timerFunc = () => {
     setImmediate(flushCallbacks)
   }
@@ -83,9 +97,15 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     setTimeout(flushCallbacks, 0)
   }
 }
-
+/**
+ * 
+ * @param {Function} cb 回调方法
+ * @param {Object} ctx 上下文
+ * @returns 
+ */
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
+  // 将回调方法放入回调队列中
   callbacks.push(() => {
     if (cb) {
       try {

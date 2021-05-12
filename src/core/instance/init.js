@@ -62,6 +62,7 @@ export function initMixin (Vue: Class<Component>) {
     vm._self = vm
     // 初始化属性
     initLifecycle(vm)
+    h_pause()
     // 初始化事件
     initEvents(vm)
     // 初始化渲染相关属性 $createElement $slot $scopedSlots $vnode

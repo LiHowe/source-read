@@ -73,14 +73,21 @@ export function setCurrentRenderingInstance (vm: Component) {
   currentRenderingInstance = vm
 }
 
+/**
+ * 渲染混入
+ * @param {Class<Component} Vue 
+ */
 export function renderMixin (Vue: Class<Component>) {
   // install runtime convenience helpers
+  // 定义一些运行时便捷的方法
   installRenderHelpers(Vue.prototype)
 
+  // 定义$nextTick
   Vue.prototype.$nextTick = function (fn: Function) {
     return nextTick(fn, this)
   }
 
+  // 渲染方法
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
     const { render, _parentVnode } = vm.$options
@@ -102,7 +109,10 @@ export function renderMixin (Vue: Class<Component>) {
       // There's no need to maintain a stack because all render fns are called
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
+      // 这里无需维护一个栈, 因为所有的渲染方法都分别独立调用.
+      // 嵌套组件的渲染方法在父组件补丁的时候调用
       currentRenderingInstance = vm
+      // 渲染vnode
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)

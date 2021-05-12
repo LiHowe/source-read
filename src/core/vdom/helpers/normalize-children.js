@@ -5,16 +5,23 @@ import { isFalse, isTrue, isDef, isUndef, isPrimitive } from 'shared/util'
 
 // The template compiler attempts to minimize the need for normalization by
 // statically analyzing the template at compile time.
+// 模板编译器试图在编译期间通过静态分析来最小化标准化流程的需求
 //
 // For plain HTML markup, normalization can be completely skipped because the
 // generated render function is guaranteed to return Array<VNode>. There are
 // two cases where extra normalization is needed:
+// 对于简单HTML标记, 标准化流程可以完全跳过, 因为生成的渲染方法是保证返回VNode数组的.
+// 这里有两种情况需要额外的标准化流程
 
 // 1. When the children contains components - because a functional component
 // may return an Array instead of a single root. In this case, just a simple
 // normalization is needed - if any child is an Array, we flatten the whole
 // thing with Array.prototype.concat. It is guaranteed to be only 1-level deep
 // because functional components already normalize their own children.
+
+// 1. 当子内容包含组件 -- 因为函数式组件可能返回一个数组(而不是一个root), 为了这种情况
+// 仅仅需要一个简单的标准化流程 -- 如果任何还在是一个数组, 我们使用Array的concat方法来平铺整个数组
+// 这样保证了仅仅有1级深度, 因为函数式组件已经标准化了他们的孩子元素
 export function simpleNormalizeChildren (children: any) {
   for (let i = 0; i < children.length; i++) {
     if (Array.isArray(children[i])) {
@@ -28,9 +35,14 @@ export function simpleNormalizeChildren (children: any) {
 // e.g. <template>, <slot>, v-for, or when the children is provided by user
 // with hand-written render functions / JSX. In such cases a full normalization
 // is needed to cater to all possible types of children values.
+
+// 2. 当孩子包含总是生成嵌套数组的架构(例如<template>, <slot>, v-for), 或者当孩子由用户手写
+// render/JSX 代码提供. 在这种情况下需要一个全面的标准化流程来迎合所有可能的孩子类型
 export function normalizeChildren (children: any): ?Array<VNode> {
   return isPrimitive(children)
+    // 原始类型直接创建text节点
     ? [createTextVNode(children)]
+    // 如果孩子是数组
     : Array.isArray(children)
       ? normalizeArrayChildren(children)
       : undefined
@@ -39,7 +51,12 @@ export function normalizeChildren (children: any): ?Array<VNode> {
 function isTextNode (node): boolean {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
-
+/**
+ * 数组子节点标准化
+ * @param {Array} children 
+ * @param {String} nestedIndex 
+ * @returns {Array<VNode>} 节点列表
+ */
 function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNode> {
   const res = []
   let i, c, lastIndex, last

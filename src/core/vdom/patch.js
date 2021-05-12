@@ -67,15 +67,30 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
   return map
 }
 
+/**
+ * 创建补丁方法 -- vnode更新方法
+ * @param {Object} backend {modules, nodeOps}
+ * @returns {Function(oldVnode, vnode, hydrating, removeOnly)} patch方法 
+ */
 export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
 
   const { modules, nodeOps } = backend
-
+  // hooks: ['create', 'activate', 'update', 'remove', 'destroy']
+  /**
+   * cbs: {
+   *  create: [],
+   *  activate: [],
+   *  update: [],
+   *  remove: [],
+   *  destory: []
+   * }
+   */
   for (i = 0; i < hooks.length; ++i) {
     cbs[hooks[i]] = []
     for (j = 0; j < modules.length; ++j) {
+      // 如果已经定义
       if (isDef(modules[j][hooks[i]])) {
         cbs[hooks[i]].push(modules[j][hooks[i]])
       }
@@ -122,6 +137,17 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  /**
+   * 创建元素
+   * @param {VNode} vnode 虚拟DOM
+   * @param {Array<VNode>} insertedVnodeQueue 插入节点序列
+   * @param {*} parentElm 
+   * @param {*} refElm 
+   * @param {*} nested 
+   * @param {*} ownerArray 
+   * @param {*} index 
+   * @returns
+   */
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -131,15 +157,20 @@ export function createPatchFunction (backend) {
     ownerArray,
     index
   ) {
+    // 如果提供了elm与ownerArray, 则表明该vNode用于之前的render!
+    // 现在, 它被用做一个新的node, 如果覆盖它的elm属性将会在它用作
+    // 一个插入引用节点的时候导致潜在的补丁错误
+    // 我们在创建关联DOM元素之前会按需克隆它
     if (isDef(vnode.elm) && isDef(ownerArray)) {
       // This vnode was used in a previous render!
       // now it's used as a new node, overwriting its elm would cause
       // potential patch errors down the road when it's used as an insertion
       // reference node. Instead, we clone the node on-demand before creating
       // associated DOM element for it.
+      // 克隆节点
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
-
+    // 为节点设置是否是根节点标识
     vnode.isRootInsert = !nested // for transition enter check
     if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
       return
@@ -207,6 +238,14 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 创建组件
+   * @param {VNode} vnode 节点
+   * @param {Array<VNode>} insertedVnodeQueue 插入节点队列
+   * @param {VNode} parentElm 父节点
+   * @param {*} refElm 引用元素
+   * @returns 
+   */
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
@@ -344,13 +383,20 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 调用销毁钩子
+   * @param {VNode} vnode 
+   */
   function invokeDestroyHook (vnode) {
     let i, j
     const data = vnode.data
     if (isDef(data)) {
+      // 如果节点有destory 钩子, 则调用
       if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)
+      // 调用destory方法来销毁节点
       for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)
     }
+    // 如果该节点有子节点,则递归调用
     if (isDef(i = vnode.children)) {
       for (j = 0; j < vnode.children.length; ++j) {
         invokeDestroyHook(vnode.children[j])
@@ -697,17 +743,28 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 补丁方法 -- 组件更新时调用
+   * @param {VNode} oldVnode 旧节点
+   * @param {VNode} vnode 新的节点
+   * @param {Boolean} hydrating 是否用于SSR
+   * @param {Boolean} removeOnly 仅删除
+   */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
+    // 如果没有新节点, 即删除节点
     if (isUndef(vnode)) {
+      // 如果有旧节点, 说明节点被删除了, 调用销毁钩子
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
 
     let isInitialPatch = false
+    // 初始化插入节点序列
     const insertedVnodeQueue = []
-
+    // 如果没有旧节点
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
+      // 空挂载(更像是作为一个组件), 创建一个根元素
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {

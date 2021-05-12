@@ -21,6 +21,12 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+/**
+ * 设置activeInstance 为传入组件
+ * 用到闭包来缓存上一次的变量
+ * @param {Component} vm 
+ * @returns {Function} 返回一个方法, 方法用于将activeInstance设置为上一次的值
+ */
 export function setActiveInstance(vm: Component) {
   const prevActiveInstance = activeInstance
   activeInstance = vm
@@ -62,24 +68,40 @@ export function initLifecycle (vm: Component) {
   vm._isMounted = false // 是否挂载过
   vm._isDestroyed = false // 是否销毁过
   vm._isBeingDestroyed = false // 是否准备销毁
+  h_log({ stage: 'initLifecycle', msg: 'vm is', objs: vm})
 }
 
+/**
+ * 初始化vue更新方法 Vue._update
+ * @param {Class<Component>} Vue 
+ */
 export function lifecycleMixin (Vue: Class<Component>) {
+  /**
+   * Vue实例更新方法
+   * @param {VNode} vnode 虚拟节点
+   * @param {Boolean} hydrating 是否设置标签是否设置data-server-rendered属性
+   */
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
+    // 缓存实例上一次vnode
     const prevVnode = vm._vnode
+    // 设置当前激活的实例, 且缓存上一次激活的实例
     const restoreActiveInstance = setActiveInstance(vm)
+    // 用新的vNode来替换老的vnode
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
+      // 实例没有vnode, 初次渲染
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
+      // 更新(补丁)
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
+    // 将激活实例重置为上一次的实例
     restoreActiveInstance()
     // update __vue__ reference
     if (prevEl) {
@@ -147,12 +169,20 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+/**
+ * 挂载Vue实例
+ * @param {Component} vm 
+ * @param {Element} el 
+ * @param {Boolean} hydrating 
+ * @returns 
+ */
 export function mountComponent (
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
   vm.$el = el
+  // 如果没有提供render
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
@@ -177,6 +207,7 @@ export function mountComponent (
 
   let updateComponent
   /* istanbul ignore if */
+  // 开发模式测试性能使用
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -203,8 +234,12 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 我们在Watcher的构造函数中将Watcher实例赋值给vm._watcher
+  // 因为Watcher的初始化补丁可能会调用$forceUpdate方法(例如在子组件的挂载钩子中), 依赖于vm._watcher已定义
+  //? 是forceUpdate依赖于vm._watcher吗?
   new Watcher(vm, updateComponent, noop, {
     before () {
+      // 实例已经挂载后 且 实例未被销毁 的时候, 当实例变化时调用钩子函数 -- beforeUpdate
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
       }
@@ -214,6 +249,7 @@ export function mountComponent (
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 如果实例的$vnode为空, 即未被挂载过
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')
