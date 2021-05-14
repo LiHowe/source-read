@@ -56,7 +56,9 @@ let platformIsPreTag
 let platformMustUseProp
 let platformGetTagNamespace
 let maybeComponent
-
+/**
+ * 创建AST元素
+ */
 export function createASTElement (
   tag: string,
   attrs: Array<ASTAttr>,
@@ -66,7 +68,7 @@ export function createASTElement (
     type: 1,
     tag,
     attrsList: attrs,
-    attrsMap: makeAttrsMap(attrs),
+    attrsMap: makeAttrsMap(attrs), // 将标签属性转换为对象
     rawAttrsMap: {},
     parent,
     children: []
@@ -75,6 +77,7 @@ export function createASTElement (
 
 /**
  * Convert HTML string to AST.
+ * 将html字符串转换为AST(抽象语法树🌲)
  */
 export function parse (
   template: string,
@@ -82,7 +85,7 @@ export function parse (
 ): ASTElement | void {
   warn = options.warn || baseWarn
 
-  platformIsPreTag = options.isPreTag || no
+  platformIsPreTag = options.isPreTag || no // tag === 'pre'
   platformMustUseProp = options.mustUseProp || no
   platformGetTagNamespace = options.getTagNamespace || no
   const isReservedTag = options.isReservedTag || no
@@ -92,6 +95,7 @@ export function parse (
     el.attrsMap['v-bind:is'] ||
     !(el.attrsMap.is ? isReservedTag(el.attrsMap.is) : isReservedTag(el.tag))
   )
+  // 获取每个module中的transformNode方法
   transforms = pluckModuleFunction(options.modules, 'transformNode')
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
@@ -214,7 +218,16 @@ export function parse (
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
     outputSourceRange: options.outputSourceRange,
+    /**
+     * 
+     * @param {String} tag 标签名称
+     * @param {Array} attrs 标签属性
+     * @param {Boolean} unary 是否是自动闭合标签
+     * @param {Number} start 标签开始位置
+     * @param {Number} end 标签闭合位置
+     */
     start (tag, attrs, unary, start, end) {
+      debugger
       // check namespace.
       // inherit parent ns if there is one
       const ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag)
@@ -252,7 +265,7 @@ export function parse (
           }
         })
       }
-
+      // 是否是script(type = 'text/javascript'或者无type)或者style标签
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         process.env.NODE_ENV !== 'production' && warn(
@@ -264,10 +277,11 @@ export function parse (
       }
 
       // apply pre-transforms
+      // 转换input
       for (let i = 0; i < preTransforms.length; i++) {
         element = preTransforms[i](element, options) || element
       }
-
+      // 如果没有设置 v-pre
       if (!inVPre) {
         processPre(element)
         if (element.pre) {
@@ -302,6 +316,7 @@ export function parse (
     },
 
     end (tag, start, end) {
+      debugger
       const element = stack[stack.length - 1]
       // pop stack
       stack.length -= 1
@@ -311,8 +326,15 @@ export function parse (
       }
       closeElement(element)
     },
-
+    /**
+     * 处理文本
+     * @param {String} text 文本
+     * @param {Number}} start 文本开始位置
+     * @param {Number} end 文本结束位置
+     * @returns 
+     */
     chars (text: string, start: number, end: number) {
+      debugger
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
           if (text === template) {
@@ -402,7 +424,10 @@ export function parse (
   })
   return root
 }
-
+/**
+ * 处理含有v-pre的元素
+ * @param {ASTElement} el 待处理元素
+ */
 function processPre (el) {
   if (getAndRemoveAttr(el, 'v-pre') != null) {
     el.pre = true

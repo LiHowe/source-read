@@ -5,11 +5,22 @@ import { detectErrors } from './error-detector'
 import { createCompileToFunctionFn } from './to-function'
 
 export function createCompilerCreator (baseCompile: Function): Function {
+  /**
+   * 创建编译模板方法
+   * @param {CompilerOptions} baseOptions 编译选项
+   */
   return function createCompiler (baseOptions: CompilerOptions) {
+    /**
+     * 编译方法
+     * @param {String} template 字符串模板
+     * @param {CompilerOptions} options 编译选项
+     * @returns {CompiledResult} 编译结果
+     */
     function compile (
       template: string,
       options?: CompilerOptions
     ): CompiledResult {
+      // 创建空对象,继承原型
       const finalOptions = Object.create(baseOptions)
       const errors = []
       const tips = []
@@ -48,7 +59,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
             options.directives
           )
         }
-        // copy other options
+        // 拷贝配置
         for (const key in options) {
           if (key !== 'modules' && key !== 'directives') {
             finalOptions[key] = options[key]

@@ -68,7 +68,6 @@ export function initLifecycle (vm: Component) {
   vm._isMounted = false // 是否挂载过
   vm._isDestroyed = false // 是否销毁过
   vm._isBeingDestroyed = false // 是否准备销毁
-  h_log({ stage: 'initLifecycle', msg: 'vm is', objs: vm})
 }
 
 /**

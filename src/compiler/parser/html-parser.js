@@ -51,6 +51,11 @@ function decodeAttr (value, shouldDecodeNewlines) {
   return value.replace(re, match => decodingMap[match])
 }
 
+/**
+ * 转换HTML
+ * @param {String}} html HTML模板
+ * @param {Object} options 配置项
+ */
 export function parseHTML (html, options) {
   const stack = []
   const expectHTML = options.expectHTML
@@ -63,8 +68,9 @@ export function parseHTML (html, options) {
     // Make sure we're not in a plaintext content element like script/style
     if (!lastTag || !isPlainTextElement(lastTag)) {
       let textEnd = html.indexOf('<')
+      // 找到开始标签🏷
       if (textEnd === 0) {
-        // Comment:
+        // 注释标签 <!-- Comment:
         if (comment.test(html)) {
           const commentEnd = html.indexOf('-->')
 
@@ -77,6 +83,8 @@ export function parseHTML (html, options) {
           }
         }
 
+        // 条件注释标签
+        // e.g <![if !IE]>  <!--[if !IE]-->
         // http://en.wikipedia.org/wiki/Conditional_comment#Downlevel-revealed_conditional_comment
         if (conditionalComment.test(html)) {
           const conditionalEnd = html.indexOf(']>')
@@ -87,14 +95,14 @@ export function parseHTML (html, options) {
           }
         }
 
-        // Doctype:
+        // 文档类型标签 <!DOCTYPE  Doctype:
         const doctypeMatch = html.match(doctype)
         if (doctypeMatch) {
           advance(doctypeMatch[0].length)
           continue
         }
 
-        // End tag:
+        // 结束标签 End tag:
         const endTagMatch = html.match(endTag)
         if (endTagMatch) {
           const curIndex = index
@@ -103,11 +111,14 @@ export function parseHTML (html, options) {
           continue
         }
 
-        // Start tag:
+        // 开始标签 Start tag:
         const startTagMatch = parseStartTag()
         if (startTagMatch) {
+          // 处理开始标签
           handleStartTag(startTagMatch)
+          // 如果是需要忽略第一个新行的标签
           if (shouldIgnoreFirstNewline(startTagMatch.tagName, html)) {
+            // 截取html字符串
             advance(1)
           }
           continue
@@ -115,8 +126,10 @@ export function parseHTML (html, options) {
       }
 
       let text, rest, next
+      // 找到闭合标签
       if (textEnd >= 0) {
         rest = html.slice(textEnd)
+        // 如果标签文本中含有 <
         while (
           !endTag.test(rest) &&
           !startTagOpen.test(rest) &&
@@ -129,6 +142,7 @@ export function parseHTML (html, options) {
           textEnd += next
           rest = html.slice(textEnd)
         }
+        // 获取标签内文本
         text = html.substring(0, textEnd)
       }
 
@@ -136,6 +150,7 @@ export function parseHTML (html, options) {
         text = html
       }
 
+      // 如果标签有文本, 截取模板, 取结束标签
       if (text) {
         advance(text.length)
       }
@@ -183,7 +198,20 @@ export function parseHTML (html, options) {
     index += n
     html = html.substring(n)
   }
-
+  /**
+   * 转换开始标签, 找到标签名称以及开始标签的起始以及结束为止
+   * 例: 
+   * <span> a</span>
+   * 返回
+   * {
+   *  tagName: 'span',
+   *  start: 0,
+   *  end: 6,
+   *  attrs: [],
+   *  unarySlash: ''
+   * }
+   * @returns {Object} 转换后的对象
+   */
   function parseStartTag () {
     const start = html.match(startTagOpen)
     if (start) {
@@ -192,6 +220,7 @@ export function parseHTML (html, options) {
         attrs: [],
         start: index
       }
+      // 截取开始标签 e.g <span> a</span>  ->  > a</span>
       advance(start[0].length)
       let end, attr
       while (!(end = html.match(startTagClose)) && (attr = html.match(dynamicArgAttribute) || html.match(attribute))) {
@@ -200,15 +229,21 @@ export function parseHTML (html, options) {
         attr.end = index
         match.attrs.push(attr)
       }
+      // 如果开始标签有结束标签 '>'
       if (end) {
         match.unarySlash = end[1]
         advance(end[0].length)
         match.end = index
         return match
       }
+      // 开始标签截取完毕
     }
   }
-
+  
+  /**
+   * 处理开始标签
+   * @param {Object} match 开始标签匹配结果对象
+   */
   function handleStartTag (match) {
     const tagName = match.tagName
     const unarySlash = match.unarySlash
@@ -221,11 +256,11 @@ export function parseHTML (html, options) {
         parseEndTag(tagName)
       }
     }
-
+    // 是否是自闭(自动闭合)标签
     const unary = isUnaryTag(tagName) || !!unarySlash
-
     const l = match.attrs.length
     const attrs = new Array(l)
+    // 遍历标签属性
     for (let i = 0; i < l; i++) {
       const args = match.attrs[i]
       const value = args[3] || args[4] || args[5] || ''
@@ -241,12 +276,13 @@ export function parseHTML (html, options) {
         attrs[i].end = args.end
       }
     }
-
+    // 如果不是自闭(自动闭合)标签
     if (!unary) {
+      // 将标签入栈
       stack.push({ tag: tagName, lowerCasedTag: tagName.toLowerCase(), attrs: attrs, start: match.start, end: match.end })
       lastTag = tagName
     }
-
+    // 如果提供了start方法
     if (options.start) {
       options.start(tagName, attrs, unary, match.start, match.end)
     }

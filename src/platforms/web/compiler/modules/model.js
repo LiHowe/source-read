@@ -1,15 +1,5 @@
 /* @flow */
 
-/**
- * Expand input[v-model] with dynamic type bindings into v-if-else chains
- * Turn this:
- *   <input v-model="data[type]" :type="type">
- * into this:
- *   <input v-if="type === 'checkbox'" type="checkbox" v-model="data[type]">
- *   <input v-else-if="type === 'radio'" type="radio" v-model="data[type]">
- *   <input v-else :type="type" v-model="data[type]">
- */
-
 import {
   addRawAttr,
   getBindingAttr,
@@ -23,6 +13,19 @@ import {
   createASTElement
 } from 'compiler/parser/index'
 
+/**
+ * 转换节点
+ * 用于将动态的input type转换为v-if-else形式
+ * Turn this:
+ *   <input v-model="data[type]" :type="type">
+ * into this:
+ *   <input v-if="type === 'checkbox'" type="checkbox" v-model="data[type]">
+ *   <input v-else-if="type === 'radio'" type="radio" v-model="data[type]">
+ *   <input v-else :type="type" v-model="data[type]">
+ * @param {ASTElement} el AST元素
+ * @param {CompilerOptions} options 编译选项
+ * @returns 
+ */
 function preTransformNode (el: ASTElement, options: CompilerOptions) {
   if (el.tag === 'input') {
     const map = el.attrsMap
@@ -84,7 +87,11 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
     }
   }
 }
-
+/**
+ * 克隆元素
+ * @param {ASTElement} el 待克隆元素
+ * @returns 
+ */
 function cloneASTElement (el) {
   return createASTElement(el.tag, el.attrsList.slice(), el.parent)
 }

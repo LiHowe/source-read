@@ -22,6 +22,7 @@ export function initMixin (Vue: Class<Component>) {
    * @param {Object} options 
    */
   Vue.prototype._init = function (options?: Object) {
+    debugger
     // 当前组件实例
     const vm: Component = this 
     // 唯一id, 从0开始递增
@@ -62,7 +63,6 @@ export function initMixin (Vue: Class<Component>) {
     vm._self = vm
     // 初始化属性
     initLifecycle(vm)
-    h_pause()
     // 初始化事件
     initEvents(vm)
     // 初始化渲染相关属性 $createElement $slot $scopedSlots $vnode

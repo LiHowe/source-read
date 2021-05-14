@@ -20,12 +20,18 @@ function createFunction (code, errors) {
 
 export function createCompileToFunctionFn (compile: Function): Function {
   const cache = Object.create(null)
-
+  /**
+   * 将字符串模板编译成渲染函数(render)
+   * @param {String} 字符串模板
+   * @param {CompilerOptions} 编译选项
+   * @param {Component} Vue组件实例
+   */
   return function compileToFunctions (
     template: string,
     options?: CompilerOptions,
     vm?: Component
   ): CompiledFunctionResult {
+    // 拷贝配置
     options = extend({}, options)
     const warn = options.warn || baseWarn
     delete options.warn
@@ -48,15 +54,17 @@ export function createCompileToFunctionFn (compile: Function): Function {
       }
     }
 
-    // check cache
+    // 如果配置改变了分隔符, 则使用配置分隔符 https://cn.vuejs.org/v2/api/#delimiters
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
+
+    // 检查缓存, 如果有缓存则使用缓存
     if (cache[key]) {
       return cache[key]
     }
 
-    // compile
+    // 编译!!!
     const compiled = compile(template, options)
 
     // check compilation errors/tips

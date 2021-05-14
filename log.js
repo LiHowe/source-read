@@ -1,5 +1,5 @@
 let step = 0
-function h_log({
+export function h_log({
     stage,
     msg,
     objs

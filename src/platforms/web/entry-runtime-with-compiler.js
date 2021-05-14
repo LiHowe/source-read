@@ -23,7 +23,6 @@ Vue.prototype.$mount = function (
   // 如果未查找到元素, Vue会创建一个div元素
   // 如果el为元素, 则直接使用该元素
   el = el && query(el)
-  h_log({ stage: 'call $mount fn', msg: 'el is', objs: el})
   /* istanbul ignore if */
   // 不允许挂载到body 和 document上
   if (el === document.body || el === document.documentElement) {
@@ -35,9 +34,8 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
-  // 将template转换为render方法
+  // 如果没有提供render, 将template转换为render方法
   if (!options.render) {
-    h_log({ stage: '!options.render'})
     let template = options.template
     if (template) {
       if (typeof template === 'string') {
@@ -73,7 +71,7 @@ Vue.prototype.$mount = function (
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,
         delimiters: options.delimiters,
-        comments: options.comments
+        comments: options.comments, // 当设为true时，将会保留且渲染模板中的HTML注释。默认false。 https://cn.vuejs.org/v2/api/#comments
       }, this)
       options.render = render
       options.staticRenderFns = staticRenderFns
