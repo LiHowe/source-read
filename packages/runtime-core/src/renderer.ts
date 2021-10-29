@@ -1221,6 +1221,9 @@ function baseCreateRenderer(
     }
   }
 
+  /**
+   * 挂载组件
+   */
   const mountComponent: MountComponentFn = (
     initialVNode,
     container,
@@ -1253,6 +1256,7 @@ function baseCreateRenderer(
     }
 
     // inject renderer internals for keepAlive
+    // 如果是KeepAlive组件
     if (isKeepAlive(initialVNode)) {
       ;(instance.ctx as KeepAliveContext).renderer = internals
     }
@@ -2352,16 +2356,19 @@ function baseCreateRenderer(
    * 渲染方法
    */
   const render: RootRenderFunction = (vnode, container, isSVG) => {
+    // 如果vnode为空， 则表明元素被清空
     if (vnode == null) {
+      // 如果容器之前挂载过vNode，则卸载之前挂载的vNode
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
-      // 打补丁
+      // 如果有vNode， 即容器内元素变化，打补丁
       patch(container._vnode || null, vnode, container, null, null, null, isSVG)
     }
-    // 刷新待刷新函数
+    // 刷新后置任务
     flushPostFlushCbs()
+    // 更新vNode绑定
     container._vnode = vnode
   }
 

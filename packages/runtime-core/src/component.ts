@@ -577,6 +577,12 @@ export function isStatefulComponent(instance: ComponentInternalInstance) {
 
 export let isInSSRComponentSetup = false
 
+/**
+ * 设置组件
+ * @param instance 组件实例
+ * @param isSSR 是否是服务器渲染
+ * @returns 
+ */
 export function setupComponent(
   instance: ComponentInternalInstance,
   isSSR = false
@@ -584,6 +590,7 @@ export function setupComponent(
   isInSSRComponentSetup = isSSR
 
   const { props, children } = instance.vnode
+  // 是否是有状态组件
   const isStateful = isStatefulComponent(instance)
   initProps(instance, props, isStateful, isSSR)
   initSlots(instance, children)
@@ -595,12 +602,19 @@ export function setupComponent(
   return setupResult
 }
 
+/**
+ * 配置有状态组件
+ * @param instance 目标组件
+ * @param isSSR 是否是服务器渲染
+ * @returns 
+ */
 function setupStatefulComponent(
   instance: ComponentInternalInstance,
   isSSR: boolean
 ) {
+  // 获取组件定义
   const Component = instance.type as ComponentOptions
-
+  // 开发环境下对属性进行校验
   if (__DEV__) {
     if (Component.name) {
       validateComponentName(Component.name, instance.appContext.config)
@@ -626,9 +640,11 @@ function setupStatefulComponent(
     }
   }
   // 0. create render proxy property access cache
+  // 首先，创建渲染代理属性可访问缓存
   instance.accessCache = Object.create(null)
   // 1. create public instance / render proxy
   // also mark it raw so it's never observed
+  // 创建一个公共实例代理对象或渲染函数代理对象，然后将它的__v_raw设置为真值避免被观测
   instance.proxy = markRaw(new Proxy(instance.ctx, PublicInstanceProxyHandlers))
   if (__DEV__) {
     exposePropsOnRenderContext(instance)
@@ -744,6 +760,12 @@ export function registerRuntimeCompiler(_compile: any) {
 // dev only
 export const isRuntimeOnly = () => !compile
 
+/**
+ * 结束组件设置
+ * @param instance 
+ * @param isSSR 
+ * @param skipOptions 
+ */
 export function finishComponentSetup(
   instance: ComponentInternalInstance,
   isSSR: boolean,
@@ -761,9 +783,11 @@ export function finishComponentSetup(
 
   // template / render function normalization
   // could be already set when returned from setup()
+  // 标准化组件template或者render方法
   if (!instance.render) {
     // only do on-the-fly compile if not in SSR - SSR on-the-fly compliation
     // is done by server-renderer
+    // 如果不是服务器渲染则只做即时编译
     if (!isSSR && compile && !Component.render) {
       const template =
         (__COMPAT__ &&
@@ -777,6 +801,7 @@ export function finishComponentSetup(
         const { isCustomElement, compilerOptions } = instance.appContext.config
         const { delimiters, compilerOptions: componentCompilerOptions } =
           Component
+        // 合并模板编译器配置
         const finalCompilerOptions: CompilerOptions = extend(
           extend(
             {
@@ -794,6 +819,7 @@ export function finishComponentSetup(
             extend(finalCompilerOptions.compatConfig, Component.compatConfig)
           }
         }
+        // 编译
         Component.render = compile(template, finalCompilerOptions)
         if (__DEV__) {
           endMeasure(instance, `compile`)

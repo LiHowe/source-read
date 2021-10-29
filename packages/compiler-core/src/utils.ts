@@ -218,14 +218,24 @@ export function advancePositionWithClone(
 
 // advance by mutation without cloning (for performance reasons), since this
 // gets called a lot in the parser
+/**
+ * 更新指针位置信息
+ * @param pos 当前指针位置
+ * @param source 字符串
+ * @param numberOfCharacters 字符长度
+ * @returns 新的指针位置
+ */
 export function advancePositionWithMutation(
   pos: Position,
   source: string,
   numberOfCharacters: number = source.length
 ): Position {
+  // 初始化数据
   let linesCount = 0
   let lastNewLinePos = -1
+  // 统计行数
   for (let i = 0; i < numberOfCharacters; i++) {
+    // 如果是', 表明新的一行
     if (source.charCodeAt(i) === 10 /* newline char code */) {
       linesCount++
       lastNewLinePos = i

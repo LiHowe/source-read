@@ -37,6 +37,12 @@ export const DOMDirectiveTransforms: Record<string, DirectiveTransform> = {
   show: transformShow
 }
 
+/**
+ * 编译方法
+ * @param template 字符串模板
+ * @param options 编译选项
+ * @returns 基础编译器baseCompile
+ */
 export function compile(
   template: string,
   options: CompilerOptions = {}

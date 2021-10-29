@@ -12,11 +12,17 @@ if (__DEV__) {
 }
 
 const compileCache: Record<string, RenderFunction> = Object.create(null)
-
+/**
+ * 将模板编译为渲染方法
+ * @param template 
+ * @param options 
+ * @returns 
+ */
 function compileToFunction(
   template: string | HTMLElement,
   options?: CompilerOptions
 ): RenderFunction {
+  // 如果模板不是字符串
   if (!isString(template)) {
     if (template.nodeType) {
       template = template.innerHTML
@@ -25,13 +31,13 @@ function compileToFunction(
       return NOOP
     }
   }
-
+  // 以模板为key进行缓存查找, 找到则使用缓存
   const key = template
   const cached = compileCache[key]
   if (cached) {
     return cached
   }
-
+  // 如果模板字符串以#开头，则认为是ID选择器
   if (template[0] === '#') {
     const el = document.querySelector(template)
     if (__DEV__ && !el) {
@@ -48,7 +54,7 @@ function compileToFunction(
     template,
     extend(
       {
-        hoistStatic: true,
+        hoistStatic: true, // 开启静态提升
         onError: __DEV__ ? onError : undefined,
         onWarn: __DEV__ ? e => onError(e, true) : NOOP
       } as CompilerOptions,

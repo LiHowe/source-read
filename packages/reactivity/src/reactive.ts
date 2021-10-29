@@ -104,6 +104,7 @@ export declare const ShallowReactiveMarker: unique symbol
 export type ShallowReactive<T> = T & { [ShallowReactiveMarker]?: true }
 
 /**
+ * 将对象转化为浅响应式对象(只有根属性是响应式)
  * Return a shallowly-reactive copy of the original object, where only the root
  * level properties are reactive. It also does not auto-unwrap refs (even at the
  * root level).
@@ -178,6 +179,15 @@ export function shallowReadonly<T extends object>(
   )
 }
 
+/**
+ * 创建响应式对象
+ * @param target 目标对象
+ * @param isReadonly 是否是只读
+ * @param baseHandlers 基础处理函数
+ * @param collectionHandlers 集合处理函数
+ * @param proxyMap 代理表
+ * @returns 
+ */
 function createReactiveObject(
   target: Target,
   isReadonly: boolean,
@@ -185,6 +195,7 @@ function createReactiveObject(
   collectionHandlers: ProxyHandler<any>,
   proxyMap: WeakMap<Target, any>
 ) {
+  // 非对象目标无法转化为响应式
   if (!isObject(target)) {
     if (__DEV__) {
       console.warn(`value cannot be made reactive: ${String(target)}`)
@@ -193,6 +204,8 @@ function createReactiveObject(
   }
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
+  // 如果已经是Proxy对象， 直接返回
+  // 对象有 __v_raw或 __v_isReactive属性或者是只读对象
   if (
     target[ReactiveFlags.RAW] &&
     !(isReadonly && target[ReactiveFlags.IS_REACTIVE])
@@ -200,12 +213,16 @@ function createReactiveObject(
     return target
   }
   // target already has corresponding Proxy
+  // 目标对象已经有对应代理
   const existingProxy = proxyMap.get(target)
   if (existingProxy) {
     return existingProxy
   }
   // only a whitelist of value types can be observed.
+  // 只有指定类型的对象可以被观测
+  // NOTE: 有__v_skip属性的对象不进行观测
   const targetType = getTargetType(target)
+  // 不符合条件直接返回
   if (targetType === TargetType.INVALID) {
     return target
   }

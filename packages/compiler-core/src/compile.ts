@@ -58,6 +58,12 @@ export function getBaseTransformPreset(
 
 // we name it `baseCompile` so that higher order compilers like
 // @vue/compiler-dom can export `compile` while re-exporting everything else.
+/**
+ * 基础编译器
+ * @param template 字符串模板
+ * @param options 编译选项
+ * @returns 
+ */
 export function baseCompile(
   template: string | RootNode,
   options: CompilerOptions = {}
@@ -81,7 +87,7 @@ export function baseCompile(
   if (options.scopeId && !isModuleMode) {
     onError(createCompilerError(ErrorCodes.X_SCOPE_ID_NOT_SUPPORTED))
   }
-
+  // 将字符串模板转化为抽象语法树AST
   const ast = isString(template) ? baseParse(template, options) : template
   const [nodeTransforms, directiveTransforms] =
     getBaseTransformPreset(prefixIdentifiers)

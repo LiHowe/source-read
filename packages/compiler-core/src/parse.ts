@@ -101,11 +101,19 @@ export interface ParserContext {
   onWarn: NonNullable<ErrorHandlingOptions['onWarn']>
 }
 
+/**
+ * 基本语法分析器
+ * @param content 字符串模板
+ * @param options 分析器选项
+ * @returns 
+ */
 export function baseParse(
   content: string,
   options: ParserOptions = {}
 ): RootNode {
+  // 创建分析器初始上下文对象(合并分析器options)
   const context = createParserContext(content, options)
+  // 获取开始解析的锚点位置
   const start = getCursor(context)
   return createRoot(
     parseChildren(context, TextModes.DATA, []),
@@ -113,6 +121,12 @@ export function baseParse(
   )
 }
 
+/**
+ * 将
+ * @param content 
+ * @param rawOptions 
+ * @returns 
+ */
 function createParserContext(
   content: string,
   rawOptions: ParserOptions
@@ -120,6 +134,7 @@ function createParserContext(
   const options = extend({}, defaultParserOptions)
 
   let key: keyof ParserOptions
+  // 将分析器选项进行合并
   for (key in rawOptions) {
     // @ts-ignore
     options[key] =
@@ -139,31 +154,43 @@ function createParserContext(
     onWarn: options.onWarn
   }
 }
-
+/**
+ * 解析孩子
+ * @param context 待解析内容
+ * @param mode 解析模式
+ * @param ancestors 祖先元素们
+ * @returns 
+ */
 function parseChildren(
   context: ParserContext,
   mode: TextModes,
   ancestors: ElementNode[]
 ): TemplateChildNode[] {
+  debugger
+  // 获取父元素
   const parent = last(ancestors)
   const ns = parent ? parent.ns : Namespaces.HTML
   const nodes: TemplateChildNode[] = []
-
+  // 循环解析字符串直到字符串最后
   while (!isEnd(context, mode, ancestors)) {
     __TEST__ && assert(context.source.length > 0)
+    // 原始字符串
     const s = context.source
     let node: TemplateChildNode | TemplateChildNode[] | undefined = undefined
 
     if (mode === TextModes.DATA || mode === TextModes.RCDATA) {
       if (!context.inVPre && startsWith(s, context.options.delimiters[0])) {
-        // '{{'
+        // 以'{{'开头的字符串，即 插值
+        // 分析插值
         node = parseInterpolation(context, mode)
       } else if (mode === TextModes.DATA && s[0] === '<') {
+        // 如果模板字符串以'<'开头, 即HTML标签
         // https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
         if (s.length === 1) {
           emitError(context, ErrorCodes.EOF_BEFORE_TAG_NAME, 1)
         } else if (s[1] === '!') {
           // https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
+          // 以！开头的字符串， 基本是注释
           if (startsWith(s, '<!--')) {
             node = parseComment(context)
           } else if (startsWith(s, '<!DOCTYPE')) {
@@ -239,9 +266,10 @@ function parseChildren(
       }
     }
     if (!node) {
+      // 解析文本
       node = parseText(context, mode)
     }
-
+    // 将解析好的文本对象进行存储
     if (isArray(node)) {
       for (let i = 0; i < node.length; i++) {
         pushNode(nodes, node[i])
@@ -305,9 +333,15 @@ function parseChildren(
 
   return removedWhitespace ? nodes.filter(Boolean) : nodes
 }
-
+/**
+ * 将节点放入模板孩子节点数组
+ * @param nodes 模板孩子节点数组
+ * @param node 待放入节点
+ * @returns 
+ */
 function pushNode(nodes: TemplateChildNode[], node: TemplateChildNode): void {
   if (node.type === NodeTypes.TEXT) {
+    // 当上一个节点和当前节点都是文本的时候进行合并
     const prev = last(nodes)
     // Merge if both this and the previous node are text and those are
     // consecutive. This happens for cases like "a < b".
@@ -1004,13 +1038,20 @@ function parseInterpolation(
   }
 }
 
+/**
+ * 解析文本
+ * @param context 待解析文本
+ * @param mode 解析模式
+ * @returns 
+ */
 function parseText(context: ParserContext, mode: TextModes): TextNode {
   __TEST__ && assert(context.source.length > 0)
 
   const endTokens =
     mode === TextModes.CDATA ? [']]>'] : ['<', context.options.delimiters[0]]
-
+  // 字符串总长度
   let endIndex = context.source.length
+  // 找到最后一个结束分词(<,{{)下标
   for (let i = 0; i < endTokens.length; i++) {
     const index = context.source.indexOf(endTokens[i], 1)
     if (index !== -1 && endIndex > index) {
@@ -1019,8 +1060,9 @@ function parseText(context: ParserContext, mode: TextModes): TextNode {
   }
 
   __TEST__ && assert(endIndex > 0)
-
+  // 获取指针位置
   const start = getCursor(context)
+  // 获取当前位置文本
   const content = parseTextData(context, endIndex, mode)
 
   return {
@@ -1031,6 +1073,7 @@ function parseText(context: ParserContext, mode: TextModes): TextNode {
 }
 
 /**
+ * 获取文本给定长度位置的文本数据
  * Get text data with a given length from the current location.
  * This translates HTML entities in the text data.
  */
@@ -1039,6 +1082,7 @@ function parseTextData(
   length: number,
   mode: TextModes
 ): string {
+  // 按给定长度截取字符串
   const rawText = context.source.slice(0, length)
   advanceBy(context, length)
   if (
@@ -1055,17 +1099,29 @@ function parseTextData(
     )
   }
 }
-
+/**
+ * 获取开始解析的锚点位置
+ * @param context 待解析内容
+ * @returns 列， 行， 位移
+ */
 function getCursor(context: ParserContext): Position {
   const { column, line, offset } = context
   return { column, line, offset }
 }
 
+/**
+ * 获取给定区间的文本
+ * @param context 待解析文本上下文
+ * @param start 开始位置
+ * @param end 结束位置
+ * @returns 
+ */
 function getSelection(
   context: ParserContext,
   start: Position,
   end?: Position
 ): SourceLocation {
+  // 如果没有给定结束位置则获取当前文本环境中的位置信息
   end = end || getCursor(context)
   return {
     start,
@@ -1086,6 +1142,7 @@ function advanceBy(context: ParserContext, numberOfCharacters: number): void {
   const { source } = context
   __TEST__ && assert(numberOfCharacters <= source.length)
   advancePositionWithMutation(context, source, numberOfCharacters)
+  // 更新待解析文本
   context.source = source.slice(numberOfCharacters)
 }
 
@@ -1127,6 +1184,13 @@ function emitError(
   )
 }
 
+/**
+ * 判断是否结束
+ * @param context 
+ * @param mode 
+ * @param ancestors 
+ * @returns 
+ */
 function isEnd(
   context: ParserContext,
   mode: TextModes,

@@ -147,6 +147,13 @@ type NormalizedProp =
 export type NormalizedProps = Record<string, NormalizedProp>
 export type NormalizedPropsOptions = [NormalizedProps, string[]] | []
 
+/**
+ * 初始化组件props和attrs
+ * @param instance 组件实例对象
+ * @param rawProps 原始props
+ * @param isStateful 是否是有状态组件
+ * @param isSSR 是否是服务器渲染
+ */
 export function initProps(
   instance: ComponentInternalInstance,
   rawProps: Data | null,
@@ -155,13 +162,15 @@ export function initProps(
 ) {
   const props: Data = {}
   const attrs: Data = {}
+  // 设置attrs 内置属性 __vInternal = 1
   def(attrs, InternalObjectKey, 1)
-
+  // 初始化实例propsDefaults
   instance.propsDefaults = Object.create(null)
 
   setFullProps(instance, rawProps, props, attrs)
 
   // ensure all declared prop keys are present
+  // 确保所有声明的prop都出现
   for (const key in instance.propsOptions[0]) {
     if (!(key in props)) {
       props[key] = undefined
@@ -173,6 +182,7 @@ export function initProps(
     validateProps(rawProps || {}, props, instance)
   }
 
+  // 如果是有状态的组件， 则将props进行浅响应式处理
   if (isStateful) {
     // stateful
     instance.props = isSSR ? props : shallowReactive(props)
