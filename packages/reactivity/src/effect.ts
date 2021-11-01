@@ -50,6 +50,9 @@ let activeEffect: ReactiveEffect | undefined
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
+/**
+ * 响应式影响
+ */
 export class ReactiveEffect<T = any> {
   active = true
   deps: Dep[] = []
@@ -170,6 +173,9 @@ export function stop(runner: ReactiveEffectRunner) {
 let shouldTrack = true
 const trackStack: boolean[] = []
 
+/**
+ * 暂停跟踪
+ */
 export function pauseTracking() {
   trackStack.push(shouldTrack)
   shouldTrack = false

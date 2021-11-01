@@ -51,7 +51,6 @@
 </div>
 
 <script>
-  debugger
 const STORAGE_KEY = 'todos-vuejs-3.x'
 const todoStorage = {
   fetch() {
@@ -82,8 +81,12 @@ const filters = {
     })
   }
 }
-
+debugger
 Vue.createApp({
+  setup() {
+    debugger
+    console.log('this is setup')
+  },
   // app initial state
   data: () => ({
     todos: todoStorage.fetch(),

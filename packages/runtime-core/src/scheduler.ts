@@ -218,12 +218,12 @@ export function flushPreFlushCbs(
   }
 }
 /**
- * 刷新后置任务队列 -- 激活并依次执行后置任务并清空队列
+ * 冲洗后置任务队列 -- 激活并依次执行后置任务并清空队列
  * @param seen ???待查明
- * @returns 
+ * @returns
  */
 export function flushPostFlushCbs(seen?: CountMap) {
-  // 如果有等待的后置刷新任务
+  // 如果有等待的后置冲洗任务
   if (pendingPostFlushCbs.length) {
     // 克隆任务队列, 用Set为了去重
     const deduped = [...new Set(pendingPostFlushCbs)]
@@ -269,7 +269,7 @@ const getId = (job: SchedulerJob): number =>
 
 /**
  * 冲洗任务
- * @param seen 
+ * @param seen
  */
 function flushJobs(seen?: CountMap) {
   isFlushPending = false

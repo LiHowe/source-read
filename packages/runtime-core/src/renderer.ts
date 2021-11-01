@@ -1184,6 +1184,18 @@ function baseCreateRenderer(
     }
   }
 
+  /**
+   * 处理组件节点
+   * @param n1 旧节点
+   * @param n2 新节点
+   * @param container 容器
+   * @param anchor 锚点
+   * @param parentComponent 父组件
+   * @param parentSuspense 父Suspense组件
+   * @param isSVG 是否是SVG
+   * @param slotScopeIds id
+   * @param optimized 是否优化
+   */
   const processComponent = (
     n1: VNode | null,
     n2: VNode,
@@ -1195,9 +1207,13 @@ function baseCreateRenderer(
     slotScopeIds: string[] | null,
     optimized: boolean
   ) => {
+    // 继承Ids
     n2.slotScopeIds = slotScopeIds
+    // 如果原容器没有节点
     if (n1 == null) {
+      // 如果新节点是keepalive的
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
+        // 激活
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
           container,
@@ -1206,6 +1222,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // 标准组件, 挂载组件
         mountComponent(
           n2,
           container,
@@ -1217,6 +1234,7 @@ function baseCreateRenderer(
         )
       }
     } else {
+      // 如果原容器有节点, 则更新组件
       updateComponent(n1, n2, optimized)
     }
   }
@@ -1245,11 +1263,12 @@ function baseCreateRenderer(
         parentComponent,
         parentSuspense
       ))
-
+    // 为了开发环境组件热更新
     if (__DEV__ && instance.type.__hmrId) {
       registerHMR(instance)
     }
 
+    // 为了性能测量
     if (__DEV__) {
       pushWarningContext(initialVNode)
       startMeasure(instance, `mount`)
@@ -1336,7 +1355,16 @@ function baseCreateRenderer(
       instance.vnode = n2
     }
   }
-
+  /**
+   * 设置渲染器影响
+   * @param instance
+   * @param initialVNode
+   * @param container
+   * @param anchor
+   * @param parentSuspense
+   * @param isSVG
+   * @param optimized
+   */
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,
@@ -2543,7 +2571,7 @@ export function traverseStaticChildren(n1: VNode, n2: VNode, shallow = false) {
 
 // https://en.wikipedia.org/wiki/Longest_increasing_subsequence
 // https://zh.wikipedia.org/wiki/%E6%9C%80%E9%95%BF%E9%80%92%E5%A2%9E%E5%AD%90%E5%BA%8F%E5%88%97
-// 最长递增子序列 
+// 最长递增子序列
 function getSequence(arr: number[]): number[] {
   const p = arr.slice()
   const result = [0]

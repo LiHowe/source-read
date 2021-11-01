@@ -10,7 +10,8 @@
       "type": "pwa-msedge",
       "url": "http://localhost:8080",
       "webRoot": "${workspaceFolder}",
-      "file": "${workspaceFolder}/packages/vue/examples/classic/todomvc.html"
+      "file": "${workspaceFolder}/packages/vue/examples/classic/todomvc.html",
+      "sourceMaps": true,
     },
     {
       "name": "Jest",

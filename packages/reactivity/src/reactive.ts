@@ -186,7 +186,7 @@ export function shallowReadonly<T extends object>(
  * @param baseHandlers 基础处理函数
  * @param collectionHandlers 集合处理函数
  * @param proxyMap 代理表
- * @returns 
+ * @returns
  */
 function createReactiveObject(
   target: Target,
@@ -226,10 +226,12 @@ function createReactiveObject(
   if (targetType === TargetType.INVALID) {
     return target
   }
+  // 新建目标代理对象
   const proxy = new Proxy(
     target,
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
   )
+  // 缓存目标代理
   proxyMap.set(target, proxy)
   return proxy
 }

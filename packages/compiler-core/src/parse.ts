@@ -155,7 +155,7 @@ function createParserContext(
   }
 }
 /**
- * 解析孩子
+ * 解析孩子节点
  * @param context 待解析内容
  * @param mode 解析模式
  * @param ancestors 祖先元素们
@@ -166,7 +166,6 @@ function parseChildren(
   mode: TextModes,
   ancestors: ElementNode[]
 ): TemplateChildNode[] {
-  debugger
   // 获取父元素
   const parent = last(ancestors)
   const ns = parent ? parent.ns : Namespaces.HTML

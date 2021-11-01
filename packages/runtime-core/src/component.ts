@@ -439,9 +439,9 @@ let uid = 0
 /**
  * 创建组件实例
  * @param vnode 虚拟节点
- * @param parent 父节点 
+ * @param parent 父节点
  * @param suspense 父suspense节点
- * @returns 
+ * @returns
  */
 export function createComponentInstance(
   vnode: VNode,
@@ -549,7 +549,10 @@ export let currentInstance: ComponentInternalInstance | null = null
 
 export const getCurrentInstance: () => ComponentInternalInstance | null = () =>
   currentInstance || currentRenderingInstance
-
+/**
+ * 设置当前实例(currentInstance)
+ * @param instance 待设置实例
+ */
 export const setCurrentInstance = (instance: ComponentInternalInstance) => {
   currentInstance = instance
   instance.scope.on()
@@ -578,10 +581,10 @@ export function isStatefulComponent(instance: ComponentInternalInstance) {
 export let isInSSRComponentSetup = false
 
 /**
- * 设置组件
+ * 设置组件, 初始化组件的props, attrs和slots
  * @param instance 组件实例
  * @param isSSR 是否是服务器渲染
- * @returns 
+ * @returns
  */
 export function setupComponent(
   instance: ComponentInternalInstance,
@@ -594,7 +597,7 @@ export function setupComponent(
   const isStateful = isStatefulComponent(instance)
   initProps(instance, props, isStateful, isSSR)
   initSlots(instance, children)
-
+  // 如果是有状态的组件, 则进行进一步配置
   const setupResult = isStateful
     ? setupStatefulComponent(instance, isSSR)
     : undefined
@@ -606,7 +609,7 @@ export function setupComponent(
  * 配置有状态组件
  * @param instance 目标组件
  * @param isSSR 是否是服务器渲染
- * @returns 
+ * @returns
  */
 function setupStatefulComponent(
   instance: ComponentInternalInstance,
@@ -641,6 +644,7 @@ function setupStatefulComponent(
   }
   // 0. create render proxy property access cache
   // 首先，创建渲染代理属性可访问缓存
+  // TODO: 作用是什么
   instance.accessCache = Object.create(null)
   // 1. create public instance / render proxy
   // also mark it raw so it's never observed
@@ -652,18 +656,23 @@ function setupStatefulComponent(
   // 2. call setup()
   const { setup } = Component
   if (setup) {
+    debugger
     const setupContext = (instance.setupContext =
       setup.length > 1 ? createSetupContext(instance) : null)
-
+    // 设置当前实例
     setCurrentInstance(instance)
+    // 暂停跟踪
     pauseTracking()
+    // 调用setup方法
     const setupResult = callWithErrorHandling(
       setup,
       instance,
       ErrorCodes.SETUP_FUNCTION,
       [__DEV__ ? shallowReadonly(instance.props) : instance.props, setupContext]
     )
+    // 恢复跟踪
     resetTracking()
+    // 取消当前实例设置
     unsetCurrentInstance()
 
     if (isPromise(setupResult)) {
@@ -696,6 +705,12 @@ function setupStatefulComponent(
   }
 }
 
+/**
+ * 处理setup结果
+ * @param instance 实例
+ * @param setupResult setup结果
+ * @param isSSR 是否是服务器渲染
+ */
 export function handleSetupResult(
   instance: ComponentInternalInstance,
   setupResult: unknown,
@@ -762,9 +777,9 @@ export const isRuntimeOnly = () => !compile
 
 /**
  * 结束组件设置
- * @param instance 
- * @param isSSR 
- * @param skipOptions 
+ * @param instance
+ * @param isSSR
+ * @param skipOptions
  */
 export function finishComponentSetup(
   instance: ComponentInternalInstance,
@@ -937,7 +952,7 @@ export function createSetupContext(
 /**
  * 构建实例代理对象
  * @param instance 实例
- * @returns 
+ * @returns
  */
 export function getExposeProxy(instance: ComponentInternalInstance) {
   if (instance.exposed) {

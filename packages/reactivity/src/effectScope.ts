@@ -4,8 +4,17 @@ import { warn } from './warning'
 let activeEffectScope: EffectScope | undefined
 const effectScopeStack: EffectScope[] = []
 
+/**
+ * 副作用范围
+ */
 export class EffectScope {
+  /**
+   * 是否启用
+   */
   active = true
+  /**
+   * 影响队列
+   */
   effects: ReactiveEffect[] = []
   cleanups: (() => void)[] = []
 
@@ -40,6 +49,10 @@ export class EffectScope {
     }
   }
 
+  /**
+   * 监听
+   * 将当前影响范围对象放入影响栈
+   */
   on() {
     if (this.active) {
       effectScopeStack.push(this)
