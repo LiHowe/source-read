@@ -4,7 +4,7 @@ import { ElementNode, ForNode, IfNode, NodeTypes } from '../ast'
 import { SET_BLOCK_TRACKING } from '../runtimeHelpers'
 
 const seen = new WeakSet()
-
+// 转换v-once
 export const transformOnce: NodeTransform = (node, context) => {
   if (node.type === NodeTypes.ELEMENT && findDir(node, 'once', true)) {
     if (seen.has(node) || context.inVOnce) {

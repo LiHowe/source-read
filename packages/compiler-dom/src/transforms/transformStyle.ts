@@ -7,7 +7,7 @@ import {
   ConstantTypes
 } from '@vue/compiler-core'
 import { parseStringStyle } from '@vue/shared'
-
+// 将行内样式(静态)转换为等价的动态对象, 然后会在`transformElement`处理并包含在生成的props中
 // Parse inline CSS strings for static style attributes into an object.
 // This is a NodeTransform since it works on the static `style` attribute and
 // converts it into a dynamic equivalent:

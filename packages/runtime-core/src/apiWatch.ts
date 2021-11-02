@@ -168,7 +168,7 @@ export function watch<T = any, Immediate extends Readonly<boolean> = false>(
   }
   return doWatch(source as any, cb, options)
 }
-
+// 执行观察
 function doWatch(
   source: WatchSource | WatchSource[] | WatchEffect | object,
   cb: WatchCallback | null,
@@ -188,7 +188,7 @@ function doWatch(
       )
     }
   }
-
+  debugger
   const warnInvalidSource = (s: unknown) => {
     warn(
       `Invalid watch source: `,

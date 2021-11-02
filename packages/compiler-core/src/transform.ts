@@ -313,7 +313,7 @@ export function createTransformContext(
 
   return context
 }
-
+// 转换
 export function transform(root: RootNode, options: TransformOptions) {
   const context = createTransformContext(root, options)
   traverseNode(root, context)
@@ -336,7 +336,7 @@ export function transform(root: RootNode, options: TransformOptions) {
     root.filters = [...context.filters!]
   }
 }
-
+// 创建根代码生成节点
 function createRootCodegen(root: RootNode, context: TransformContext) {
   const { helper } = context
   const { children } = root
@@ -404,7 +404,7 @@ export function traverseChildren(
     traverseNode(child, context)
   }
 }
-
+// 节点变换, 处理v-if v-once等
 export function traverseNode(
   node: RootNode | TemplateChildNode,
   context: TransformContext
@@ -429,45 +429,45 @@ export function traverseNode(
       // node may have been replaced
       node = context.currentNode
     }
-  }
-
+  } // 变换处理节点
+  //根据节点类型继续进行调整
   switch (node.type) {
-    case NodeTypes.COMMENT:
+    case NodeTypes.COMMENT: // 注释类型
       if (!context.ssr) {
         // inject import for the Comment symbol, which is needed for creating
         // comment nodes with `createVNode`
         context.helper(CREATE_COMMENT)
       }
       break
-    case NodeTypes.INTERPOLATION:
+    case NodeTypes.INTERPOLATION: // 插值类型?
       // no need to traverse, but we need to inject toString helper
       if (!context.ssr) {
         context.helper(TO_DISPLAY_STRING)
       }
       break
 
-    // for container types, further traverse downwards
+    // for container types, further traverse downwards, 对于容器类型, 进行递归
     case NodeTypes.IF:
       for (let i = 0; i < node.branches.length; i++) {
         traverseNode(node.branches[i], context)
       }
       break
-    case NodeTypes.IF_BRANCH:
-    case NodeTypes.FOR:
-    case NodeTypes.ELEMENT:
-    case NodeTypes.ROOT:
-      traverseChildren(node, context)
+    case NodeTypes.IF_BRANCH: // v-if分支节点
+    case NodeTypes.FOR: // v-for节点
+    case NodeTypes.ELEMENT: // 元素节点
+    case NodeTypes.ROOT: // 根节点
+      traverseChildren(node, context) // 对子节点进行转换
       break
   }
 
-  // exit transforms
+  // exit transforms, 退出转换
   context.currentNode = node
   let i = exitFns.length
   while (i--) {
     exitFns[i]()
   }
 }
-
+// 创建结构指令变换, 主要指 v-if v-else v-else-if v-for
 export function createStructuralDirectiveTransform(
   name: string | RegExp,
   fn: StructuralDirectiveTransform

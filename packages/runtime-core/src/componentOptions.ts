@@ -538,12 +538,12 @@ function createDuplicateChecker() {
 }
 
 export let shouldCacheAccess = true
-
+// 应用组件选项
 export function applyOptions(instance: ComponentInternalInstance) {
   const options = resolveMergedOptions(instance)
   const publicThis = instance.proxy! as any
   const ctx = instance.ctx
-
+  // 在状态初始化期间不要在公共代理对象上缓存组件属性
   // do not cache property access on public proxy during state initialization
   shouldCacheAccess = false
 
@@ -630,7 +630,7 @@ export function applyOptions(instance: ComponentInternalInstance) {
             writable: true
           })
         } else {
-          ctx[key] = methodHandler.bind(publicThis)
+          ctx[key] = methodHandler.bind(publicThis) // 这样方法里面使用this才会指向当前组件
         }
         if (__DEV__) {
           checkDuplicateProperties!(OptionTypes.METHODS, key)
@@ -881,7 +881,7 @@ function callHook(
     type
   )
 }
-
+// 创建watcher
 export function createWatcher(
   raw: ComponentWatchOptionItem,
   ctx: Data,

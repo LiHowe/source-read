@@ -37,13 +37,13 @@ import { SlotFlags, slotFlagsText } from '@vue/shared'
 
 const defaultFallback = createSimpleExpression(`undefined`, false)
 
-// A NodeTransform that:
+// A NodeTransform that: 跟踪
 // 1. Tracks scope identifiers for scoped slots so that they don't get prefixed
 //    by transformExpression. This is only applied in non-browser builds with
 //    { prefixIdentifiers: true }.
-// 2. Track v-slot depths so that we know a slot is inside another slot.
-//    Note the exit callback is executed before buildSlots() on the same node,
-//    so only nested slots see positive numbers.
+// 2. Track v-slot depths so that we know a slot is inside another slot. .追踪v-slot的深度，以便我们知道一个slot在另一个slot里面
+//    Note the exit callback is executed before buildSlots() on the same node, 注意退出回调是在同一节点的buildSlots()之前执行的。
+//    so only nested slots see positive numbers. 所以只有嵌套的slot才能看到正数
 export const trackSlotScopes: NodeTransform = (node, context) => {
   if (
     node.type === NodeTypes.ELEMENT &&

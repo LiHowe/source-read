@@ -11,7 +11,7 @@ import {
 import { WITH_MEMO } from '../runtimeHelpers'
 
 const seen = new WeakSet()
-
+// 处理v-memo, vue3.2+新增, 应用于长列表大数据量等优化
 export const transformMemo: NodeTransform = (node, context) => {
   if (node.type === NodeTypes.ELEMENT) {
     const dir = findDir(node, 'memo')

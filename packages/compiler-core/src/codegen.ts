@@ -144,7 +144,7 @@ function createCodegenContext(
         }
       }
     },
-    indent() {
+    indent() { // 缩进方法
       newline(++context.indentLevel)
     },
     deindent(withoutNewLine = false) {
@@ -186,7 +186,7 @@ function createCodegenContext(
 
   return context
 }
-
+// 构建节点
 export function generate(
   ast: RootNode,
   options: CodegenOptions & {
@@ -211,7 +211,7 @@ export function generate(
   const genScopeId = !__BROWSER__ && scopeId != null && mode === 'module'
   const isSetupInlined = !__BROWSER__ && !!options.inline
 
-  // preambles
+  // preambles 序言, 在setup()行内模式下, 序言在子上下文环境中生成,并且分片返回
   // in setup() inline mode, the preamble is generated in a sub context
   // and returned separately.
   const preambleContext = isSetupInlined
@@ -313,7 +313,7 @@ export function generate(
     map: context.map ? (context.map as any).toJSON() : undefined
   }
 }
-
+// 获取方法序言
 function genFunctionPreamble(ast: RootNode, context: CodegenContext) {
   const {
     ssr,
@@ -340,9 +340,9 @@ function genFunctionPreamble(ast: RootNode, context: CodegenContext) {
       )
     } else {
       // "with" mode.
-      // save Vue in a separate variable to avoid collision
+      // save Vue in a separate variable to avoid collision 使用一个单独的变量保存Vue避免冲突
       push(`const _Vue = ${VueBinding}\n`)
-      // in "with" mode, helpers are declared inside the with block to avoid
+      // in "with" mode, helpers are declared inside the with block to avoid 在"with"模式下,帮助函数在块内声明避免校验开销, 但是提升函数不计入方法 -- 所以我们需要提供帮助函数
       // has check cost, but hoists are lifted out of the function - we need
       // to provide the helper here.
       if (ast.hoists.length) {
@@ -469,7 +469,7 @@ function genAssets(
     }
   }
 }
-
+// 构建静态提升节点
 function genHoists(hoists: (JSChildNode | null)[], context: CodegenContext) {
   if (!hoists.length) {
     return
@@ -488,7 +488,7 @@ function genHoists(hoists: (JSChildNode | null)[], context: CodegenContext) {
     )
     newline()
   }
-
+  // 遍历静态提升节点, 构建定义
   for (let i = 0; i < hoists.length; i++) {
     const exp = hoists[i]
     if (exp) {
@@ -571,7 +571,7 @@ function genNodeList(
     }
   }
 }
-
+// 生成节点
 function genNode(node: CodegenNode | symbol | string, context: CodegenContext) {
   if (isString(node)) {
     context.push(node)
@@ -701,7 +701,7 @@ function genCompoundExpression(
     }
   }
 }
-
+// 生成表达式作为属性Key
 function genExpressionAsPropertyKey(
   node: ExpressionNode,
   context: CodegenContext
@@ -790,7 +790,7 @@ function genCallExpression(node: CallExpression, context: CodegenContext) {
   genNodeList(node.arguments, context)
   push(`)`)
 }
-
+// 构建对象表达式
 function genObjectExpression(node: ObjectExpression, context: CodegenContext) {
   const { push, indent, deindent, newline } = context
   const { properties } = node
@@ -806,13 +806,13 @@ function genObjectExpression(node: ObjectExpression, context: CodegenContext) {
   multilines && indent()
   for (let i = 0; i < properties.length; i++) {
     const { key, value } = properties[i]
-    // key
+    // key, 构建键名, 以class为例, 构建之后为 { class:
     genExpressionAsPropertyKey(key, context)
     push(`: `)
-    // value
+    // value, 构建属性值
     genNode(value, context)
     if (i < properties.length - 1) {
-      // will only reach this if it's multilines
+      // will only reach this if it's multilines, 如果是多行
       push(`,`)
       newline()
     }

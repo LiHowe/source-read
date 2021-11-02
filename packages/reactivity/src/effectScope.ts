@@ -5,7 +5,7 @@ let activeEffectScope: EffectScope | undefined
 const effectScopeStack: EffectScope[] = []
 
 /**
- * 副作用范围
+ * 影响范围
  */
 export class EffectScope {
   /**

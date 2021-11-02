@@ -24,7 +24,7 @@ import {
   NORMALIZE_PROPS,
   NORMALIZE_STYLE
 } from '../runtimeHelpers'
-
+// 静态节点提升
 export function hoistStatic(root: RootNode, context: TransformContext) {
   walk(
     root,
@@ -46,13 +46,13 @@ export function isSingleElementRoot(
     !isSlotOutlet(child)
   )
 }
-
+// 遍历节点, 对节点的所有静态子节点进行提升
 function walk(
   node: ParentNode,
   context: TransformContext,
   doNotHoistNode: boolean = false
 ) {
-  // Some transforms, e.g. transformAssetUrls from @vue/compiler-sfc, replaces
+  // Some transforms, e.g. transformAssetUrls from @vue/compiler-sfc, replaces 一些转换, 例如@vue/compiler-sfc的转换静态资源URL的方法, 使用表达式替换了静态绑定. 这些表达式保证是常量所以仍然可以对该节点对静态提升
   // static bindings with expressions. These expressions are guaranteed to be
   // constant so they are still eligible for hoisting, but they are only
   // available at runtime and therefore cannot be evaluated ahead of time.
@@ -65,7 +65,7 @@ function walk(
   const { children } = node
   const originalCount = children.length
   let hoistedCount = 0
-
+  // 遍历子节点
   for (let i = 0; i < children.length; i++) {
     const child = children[i]
     // only plain elements & text calls are eligible for hoisting.
@@ -89,7 +89,7 @@ function walk(
         }
       } else {
         // node may contain dynamic children, but its props may be eligible for
-        // hoisting.
+        // hoisting. 节点可能包含动态子节点, 但是它的prop可能符合提升条件
         const codegenNode = child.codegenNode!
         if (codegenNode.type === NodeTypes.VNODE_CALL) {
           const flag = getPatchFlag(codegenNode)

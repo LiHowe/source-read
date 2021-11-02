@@ -12,7 +12,7 @@ import { buildProps, PropsExpression } from './transformElement'
 import { createCompilerError, ErrorCodes } from '../errors'
 import { RENDER_SLOT } from '../runtimeHelpers'
 import { camelize } from '@vue/shared/'
-
+// 转换slot
 export const transformSlotOutlet: NodeTransform = (node, context) => {
   if (isSlotOutlet(node)) {
     const { children, loc } = node
