@@ -90,13 +90,21 @@ export const enum TextModes {
 }
 
 export interface ParserContext {
+  // 解析器选项
   options: MergedParserOptions
+  // 原始字符串模板
   readonly originalSource: string
+  // 当前剩余待解析字符串模板
   source: string
+  // 偏移量
   offset: number
+  // 行数
   line: number
+  // 列数
   column: number
+  // 是否是在`<pre>`标签内, 保留空格
   inPre: boolean // HTML <pre> tag, preserve whitespaces
+  // 是否是在`v-pre`指令所在的标签内, 不处理指令和插值
   inVPre: boolean // v-pre, do not process directives and interpolations
   onWarn: NonNullable<ErrorHandlingOptions['onWarn']>
 }
@@ -111,18 +119,21 @@ export function baseParse(
   content: string,
   options: ParserOptions = {}
 ): RootNode {
+  console.log('[log] baseParse')
   // 创建解析上下文对象(合并分析器options)
   const context = createParserContext(content, options)
-  // 获取开始解析的锚点位置
+  // 获取开始解析的游标位置
   const start = getCursor(context)
   return createRoot(
+    // 解析子节点
     parseChildren(context, TextModes.DATA, []),
+    // 获取位置
     getSelection(context, start)
   )
 }
 
 /**
- * 创建解析上下文对象
+ * 创建解析上下文对象, 用于记录当前解析状态
  * @param content
  * @param rawOptions
  * @returns
@@ -131,10 +142,11 @@ function createParserContext(
   content: string,
   rawOptions: ParserOptions
 ): ParserContext {
+  // 拷贝默认解析器设置
   const options = extend({}, defaultParserOptions)
 
   let key: keyof ParserOptions
-  // 将分析器选项进行合并
+  // 将解析器选项进行合并
   for (key in rawOptions) {
     // @ts-ignore
     options[key] =
@@ -142,6 +154,7 @@ function createParserContext(
         ? defaultParserOptions[key]
         : rawOptions[key]
   }
+  // 返回上下文对象
   return {
     options,
     column: 1,
@@ -154,6 +167,7 @@ function createParserContext(
     onWarn: options.onWarn
   }
 }
+
 /**
  * 解析孩子节点
  * @param context 待解析内容
@@ -168,10 +182,12 @@ function parseChildren(
 ): TemplateChildNode[] {
   // 获取父元素
   const parent = last(ancestors)
+  console.log('解析子节点, 当前父节点是', parent)
   const ns = parent ? parent.ns : Namespaces.HTML
   const nodes: TemplateChildNode[] = []
   // 循环解析字符串直到字符串最后
   while (!isEnd(context, mode, ancestors)) {
+    console.log('继续解析, 剩余字符串:', context.source)
     __TEST__ && assert(context.source.length > 0)
     // 原始字符串
     const s = context.source
@@ -311,6 +327,7 @@ function parseChildren(
         } else if (shouldCondense) {
           // in condense mode, consecutive whitespaces in text are condensed
           // down to a single space.
+          // 如果需要缩进空格, 使用正则将多个空格或者换行符替换成单个空格
           node.content = node.content.replace(/[\t\r\n\f ]+/g, ' ')
         }
       }
@@ -421,6 +438,10 @@ function parseComment(context: ParserContext): CommentNode {
   }
 }
 
+/**
+ * 解析文档声明`<!DOCTYPE`, 返回节点type为`COMMENT`
+ * @param context
+ */
 function parseBogusComment(context: ParserContext): CommentNode | undefined {
   __TEST__ && assert(/^<(?:[\!\?]|\/[^a-z>])/i.test(context.source))
 
@@ -444,6 +465,11 @@ function parseBogusComment(context: ParserContext): CommentNode | undefined {
   }
 }
 
+/**
+ * 解析HTML元素
+ * @param context
+ * @param ancestors
+ */
 function parseElement(
   context: ParserContext,
   ancestors: ElementNode[]
@@ -469,7 +495,7 @@ function parseElement(
     return element
   }
 
-  // Children.
+  // Children., 现将元素入栈,解析完子节点后出栈
   ancestors.push(element)
   const mode = context.options.getTextMode(element, parent)
   const children = parseChildren(context, mode, ancestors)

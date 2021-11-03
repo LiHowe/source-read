@@ -186,13 +186,19 @@ function createCodegenContext(
 
   return context
 }
-// 构建节点
+
+/**
+ * 使用AST生成代码
+ * @param ast
+ * @param options
+ */
 export function generate(
   ast: RootNode,
   options: CodegenOptions & {
     onContextCreated?: (context: CodegenContext) => void
   } = {}
 ): CodegenResult {
+  // 创建构建环境对象
   const context = createCodegenContext(ast, options)
   if (options.onContextCreated) options.onContextCreated(context)
   const {
@@ -211,9 +217,10 @@ export function generate(
   const genScopeId = !__BROWSER__ && scopeId != null && mode === 'module'
   const isSetupInlined = !__BROWSER__ && !!options.inline
 
-  // preambles 序言, 在setup()行内模式下, 序言在子上下文环境中生成,并且分片返回
+  // preambles
   // in setup() inline mode, the preamble is generated in a sub context
   // and returned separately.
+  // 序言, 在setup()行内模式下, 序言在子上下文环境中生成,并且分片返回
   const preambleContext = isSetupInlined
     ? createCodegenContext(ast, options)
     : context

@@ -13,15 +13,17 @@ import { PropsExpression } from './transforms/transformElement'
 import { ImportItem, TransformContext } from './transform'
 import { getVNodeBlockHelper, getVNodeHelper } from './utils'
 
-// Vue template is a platform-agnostic superset of HTML (syntax only).
-// More namespaces like SVG and MathML are declared by platform specific
-// compilers.
+// Vue 模板是一个与平台无关的HTML(语法)超集,
+// 更多的名称空间(如SVG和MathML)是由特定于平台的编译器声明的。
 export type Namespace = number
 
 export const enum Namespaces {
   HTML
 }
 
+/**
+ * 节点类型
+ */
 export const enum NodeTypes {
   ROOT,
   ELEMENT,
@@ -56,10 +58,17 @@ export const enum NodeTypes {
   JS_RETURN_STATEMENT
 }
 
+/**
+ * 元素类型
+ */
 export const enum ElementTypes {
+  // 元素
   ELEMENT,
+  // 组件
   COMPONENT,
+  // 插槽
   SLOT,
+  // 模板
   TEMPLATE
 }
 
@@ -548,6 +557,11 @@ export const locStub: SourceLocation = {
   end: { line: 1, column: 1, offset: 0 }
 }
 
+/**
+ * 创建根节点
+ * @param children 子节点
+ * @param loc 位置信息
+ */
 export function createRoot(
   children: TemplateChildNode[],
   loc = locStub

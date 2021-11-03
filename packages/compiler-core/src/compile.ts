@@ -62,12 +62,13 @@ export function getBaseTransformPreset(
  * 基础编译器
  * @param template 字符串模板
  * @param options 编译选项
- * @returns 
+ * @returns
  */
 export function baseCompile(
   template: string | RootNode,
   options: CompilerOptions = {}
 ): CodegenResult {
+  console.log('[log] baseCompile')
   const onError = options.onError || defaultOnError
   const isModuleMode = options.mode === 'module'
   /* istanbul ignore if */
@@ -87,8 +88,10 @@ export function baseCompile(
   if (options.scopeId && !isModuleMode) {
     onError(createCompilerError(ErrorCodes.X_SCOPE_ID_NOT_SUPPORTED))
   }
+  console.log('parse start!')
   // 将字符串模板转化为抽象语法树AST
   const ast = isString(template) ? baseParse(template, options) : template
+  console.log('parse done, AST:', ast)
   const [nodeTransforms, directiveTransforms] =
     getBaseTransformPreset(prefixIdentifiers)
 
@@ -98,7 +101,7 @@ export function baseCompile(
       options.expressionPlugins = [...(expressionPlugins || []), 'typescript']
     }
   }
-
+  console.log('transform start')
   transform(
     ast,
     extend({}, options, {
@@ -114,7 +117,8 @@ export function baseCompile(
       )
     })
   )
-
+  console.log('transform done')
+  console.log('start generate')
   return generate(
     ast,
     extend({}, options, {

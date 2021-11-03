@@ -18,51 +18,55 @@ export interface ParserOptions
   extends ErrorHandlingOptions,
     CompilerCompatOptions {
   /**
-   * e.g. platform native elements, e.g. `<div>` for browsers
+   * 平台原生元素, 浏览器平台如`<div>`, `<span>`等
    */
   isNativeTag?: (tag: string) => boolean
   /**
-   * e.g. native elements that can self-close, e.g. `<img>`, `<br>`, `<hr>`
+   * 平台自闭合元素, 浏览器平台如 `<img>`, `<br>`, `<hr>`
    */
   isVoidTag?: (tag: string) => boolean
   /**
-   * e.g. elements that should preserve whitespace inside, e.g. `<pre>`
+   * 可以保留元素内部空格的元素, 如 `<pre>`
    */
   isPreTag?: (tag: string) => boolean
   /**
-   * Platform-specific built-in components e.g. `<Transition>`
+   * 平台相关内置组件, 如Vue在浏览器平台的 `<Transition>` 组件
    */
   isBuiltInComponent?: (tag: string) => symbol | void
   /**
    * Separate option for end users to extend the native elements list
+   * 是否是用户扩展的自定义标签, 避免当做组件来解析
    */
   isCustomElement?: (tag: string) => boolean | void
   /**
-   * Get tag namespace
+   * 获取标签命名空间
    */
   getNamespace?: (tag: string, parent: ElementNode | undefined) => Namespace
   /**
-   * Get text parsing mode for this element
+   * 获取这个元素的文本解析模式(TextMode)
    */
   getTextMode?: (
     node: ElementNode,
     parent: ElementNode | undefined
   ) => TextModes
   /**
+   * 插值分隔符, 默认`{{ }}`
    * @default ['{{', '}}']
    */
   delimiters?: [string, string]
   /**
-   * Whitespace handling strategy
+   * 空格处理策略
+   * 保留空格 | 压缩空格
    */
   whitespace?: 'preserve' | 'condense'
   /**
-   * Only needed for DOM compilers
+   * 仅DOM编译器需要，解析实体字符，例如：$gt 解析为 >  $lt 解析为 <
    */
   decodeEntities?: (rawText: string, asAttr: boolean) => string
   /**
    * Whether to keep comments in the templates AST.
    * This defaults to `true` in development and `false` in production builds.
+   * 是否在AST中保留注释, 开发环境默认为 `true`, 生产环境为 `false`
    */
   comments?: boolean
 }
