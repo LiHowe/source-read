@@ -122,7 +122,7 @@ export function baseParse(
   console.log('[log] baseParse')
   // 创建解析上下文对象(合并分析器options)
   const context = createParserContext(content, options)
-  // 获取开始解析的游标位置
+  // 获取开始解析的指针位置
   const start = getCursor(context)
   return createRoot(
     // 解析子节点
@@ -396,6 +396,10 @@ function parseCDATA(
   return nodes
 }
 
+/**
+ * 解析注释
+ * @param context
+ */
 function parseComment(context: ParserContext): CommentNode {
   __TEST__ && assert(startsWith(context.source, '<!--'))
 
@@ -559,6 +563,7 @@ const isSpecialTemplateDirective = /*#__PURE__*/ makeMap(
 )
 
 /**
+ * 解析标签(开始标签和结束标签)
  * Parse a tag (E.g. `<div id=a>`) with that type (start tag or end tag).
  */
 function parseTag(
@@ -584,30 +589,40 @@ function parseTag(
 
   // Tag open.
   const start = getCursor(context)
+  // 匹配标签名的正则
   const match = /^<\/?([a-z][^\t\r\n\f />]*)/i.exec(context.source)!
+  // 获取匹配到的标签名
   const tag = match[1]
+  // 获取命名空间
   const ns = context.options.getNamespace(tag, parent)
   // 截取标签
   advanceBy(context, match[0].length)
+  // 去除空格
   advanceSpaces(context)
 
   // save current state in case we need to re-parse attributes with v-pre
+  // 保存当前状态以防我们需要重新解析包含v-pre指令标签的属性
   const cursor = getCursor(context)
+  // 获取当前解析进度
   const currentSource = context.source
 
   // check <pre> tag
+  // 检查是否是<pre>标签
   if (context.options.isPreTag(tag)) {
+    // 更新上下文inPre标识, 表明包含pre标签
     context.inPre = true
   }
 
   // Attributes.
+  // 解析标签属性
   let props = parseAttributes(context, type)
 
   // check v-pre
+  // 检查v-pre指令的标签
   if (
-    type === TagType.Start &&
-    !context.inVPre &&
-    props.some(p => p.type === NodeTypes.DIRECTIVE && p.name === 'pre')
+    type === TagType.Start && // 如果是开始标签
+    !context.inVPre && // 且不是pre标签
+    props.some(p => p.type === NodeTypes.DIRECTIVE && p.name === 'pre') // 并且有v-pre指令
   ) {
     context.inVPre = true
     // reset context
@@ -754,31 +769,42 @@ function isComponent(
   }
 }
 
+/**
+ * 解析标签属性
+ * @param context 解析上下文对象
+ * @param type 解析标签的类型
+ */
 function parseAttributes(
   context: ParserContext,
   type: TagType
 ): (AttributeNode | DirectiveNode)[] {
+  // 初始化属性集合
   const props = []
+  // 标签名集合
   const attributeNames = new Set<string>()
+  // 循环, 直到解析到结束标签末尾
   while (
     context.source.length > 0 &&
-    !startsWith(context.source, '>') &&
-    !startsWith(context.source, '/>')
+    !startsWith(context.source, '>') && // 标准标签结束字符
+    !startsWith(context.source, '/>') // 自闭标签结束字符
   ) {
+    // 如果解析的标签以/开始, 报错
     if (startsWith(context.source, '/')) {
       emitError(context, ErrorCodes.UNEXPECTED_SOLIDUS_IN_TAG)
       advanceBy(context, 1)
       advanceSpaces(context)
       continue
     }
+    // 如果当前标签是结束标签, 报错(因为结束标签肯定要是以>结束
     if (type === TagType.End) {
       emitError(context, ErrorCodes.END_TAG_WITH_ATTRIBUTES)
     }
-
+    // 解析标签属性
     const attr = parseAttribute(context, attributeNames)
 
     // Trim whitespace between class
     // https://github.com/vuejs/vue-next/issues/4251
+    // 缩进class属性值之间的空格
     if (
       attr.type === NodeTypes.ATTRIBUTE &&
       attr.value &&
@@ -798,27 +824,35 @@ function parseAttributes(
   }
   return props
 }
-// 解析标签属性
+
+/**
+ * 解析标签属性
+ * @param context 待解析文本
+ * @param nameSet 属性
+ */
 function parseAttribute(
   context: ParserContext,
   nameSet: Set<string>
 ): AttributeNode | DirectiveNode {
   __TEST__ && assert(/^[^\t\r\n\f />]/.test(context.source))
 
-  // 获取标签属性名
   const start = getCursor(context)
+  // 获取标签属性名正则
   const match = /^[^\t\r\n\f />][^\t\r\n\f />=]*/.exec(context.source)!
+  // 匹配到属性名
   const name = match[0]
   // 如果有重名属性, 报错
   if (nameSet.has(name)) {
     emitError(context, ErrorCodes.DUPLICATE_ATTRIBUTE)
   }
+  // 放入属性数组
   nameSet.add(name) // 放入名称列表
-
+  // 如果属性名字符串首位是=, 报错
   if (name[0] === '=') {
     emitError(context, ErrorCodes.UNEXPECTED_EQUALS_SIGN_BEFORE_ATTRIBUTE_NAME)
   }
   {
+    // 校验非法属性名, 即属性名中包含`"`, `'`, `<`
     const pattern = /["'<]/g
     let m: RegExpExecArray | null
     while ((m = pattern.exec(name))) {
@@ -829,23 +863,28 @@ function parseAttribute(
       )
     }
   }
-  // 前进游标
+  // 前进指针
   advanceBy(context, name.length)
 
   // Value
   let value: AttributeValue = undefined
-
+  // 匹配属性值
   if (/^[\t\r\n\f ]*=/.test(context.source)) {
-    advanceSpaces(context) // 去掉=前空格
-    advanceBy(context, 1) // 前进一位, 去掉=
-    advanceSpaces(context) // 去掉=后空格
-    value = parseAttributeValue(context) // 解析属性值
+    // 去掉=前空格
+    advanceSpaces(context)
+    // 前进一位, 去掉=
+    advanceBy(context, 1)
+    // 去掉=后空格
+    advanceSpaces(context)
+    // 解析属性值
+    value = parseAttributeValue(context)
+    // 如果没有解析到属性值, 则报错
     if (!value) {
       emitError(context, ErrorCodes.MISSING_ATTRIBUTE_VALUE)
     }
   }
-  const loc = getSelection(context, start) // 获取游标位置
-
+  const loc = getSelection(context, start) // 获取指针位置
+  // Vue简写指令处理
   if (!context.inVPre && /^(v-[A-Za-z0-9-]|:|\.|@|#)/.test(name)) {
     const match =
       /(?:^v-([a-z0-9-]+))?(?:(?::|^\.|^@|^#)(\[[^\]]+\]|[^\.]+))?(.+)?$/i.exec(
@@ -976,25 +1015,34 @@ function parseAttribute(
     loc
   }
 }
-// 解析标签属性值
+
+/**
+ * 解析标签属性值
+ * @param context 解析上下文对象
+ */
 function parseAttributeValue(context: ParserContext): AttributeValue {
   const start = getCursor(context)
   let content: string
-
-  const quote = context.source[0] // 获取引号
-  const isQuoted = quote === `"` || quote === `'` // 属性值是否以(单|双)引号开头
+  // 获取引号
+  const quote = context.source[0]
+  // 属性值是否以(单|双)引号开头
+  const isQuoted = quote === `"` || quote === `'`
+  // 如果是以引号开头
   if (isQuoted) {
-    // Quoted value. 如果是引号值, 先前进一位去除引号
+    // 如果是引号值, 先前进一位去除引号
     advanceBy(context, 1)
     // 找到回引号位置
     const endIndex = context.source.indexOf(quote)
+    // 如果没有回引号, 解析文本
     if (endIndex === -1) {
+      // 将待解析字符串作为属性进行解码
       content = parseTextData(
         context,
         context.source.length,
         TextModes.ATTRIBUTE_VALUE
       )
     } else {
+      // 将回引号之前的文本作为属性进行解码
       content = parseTextData(context, endIndex, TextModes.ATTRIBUTE_VALUE) // 解析到回引号之前的文本内容作为属性值
       advanceBy(context, 1) // 前进去除回引号
     }
@@ -1019,31 +1067,44 @@ function parseAttributeValue(context: ParserContext): AttributeValue {
   return { content, isQuoted, loc: getSelection(context, start) }
 }
 
+/**
+ * 解析插值
+ * @param context
+ * @param mode
+ */
 function parseInterpolation(
   context: ParserContext,
   mode: TextModes
 ): InterpolationNode | undefined {
+  // 获取插值符号
   const [open, close] = context.options.delimiters
   __TEST__ && assert(startsWith(context.source, open))
-
+  // 获取插值关闭符号位置
   const closeIndex = context.source.indexOf(close, open.length)
+  // 没有关闭符号, 报错
   if (closeIndex === -1) {
     emitError(context, ErrorCodes.X_MISSING_INTERPOLATION_END)
     return undefined
   }
-
+  // 获取当前指针位置
   const start = getCursor(context)
+  // 前进
   advanceBy(context, open.length)
   const innerStart = getCursor(context)
   const innerEnd = getCursor(context)
   const rawContentLength = closeIndex - open.length
+  // 获取插值文本
   const rawContent = context.source.slice(0, rawContentLength)
+  // 预trim
   const preTrimContent = parseTextData(context, rawContentLength, mode)
+  // trim
   const content = preTrimContent.trim()
   const startOffset = preTrimContent.indexOf(content)
+  // 更新开始位置信息
   if (startOffset > 0) {
     advancePositionWithMutation(innerStart, rawContent, startOffset)
   }
+  // 更新结束位置信息
   const endOffset =
     rawContentLength - (preTrimContent.length - content.length - startOffset)
   advancePositionWithMutation(innerEnd, rawContent, endOffset)
@@ -1071,7 +1132,7 @@ function parseInterpolation(
  */
 function parseText(context: ParserContext, mode: TextModes): TextNode {
   __TEST__ && assert(context.source.length > 0)
-
+  // 获取结束标识, `<`, `{{`
   const endTokens =
     mode === TextModes.CDATA ? [']]>'] : ['<', context.options.delimiters[0]]
   // 字符串总长度
