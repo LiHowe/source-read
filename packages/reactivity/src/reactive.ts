@@ -27,9 +27,21 @@ export interface Target {
   [ReactiveFlags.RAW]?: any
 }
 
+/**
+ * 响应式对象mapping
+ */
 export const reactiveMap = new WeakMap<Target, any>()
+/**
+ * 浅响应式对象mapping
+ */
 export const shallowReactiveMap = new WeakMap<Target, any>()
+/**
+ * 只读对象mapping
+ */
 export const readonlyMap = new WeakMap<Target, any>()
+/**
+ * 浅只读对象mapping
+ */
 export const shallowReadonlyMap = new WeakMap<Target, any>()
 
 const enum TargetType {
@@ -53,10 +65,16 @@ function targetTypeMap(rawType: string) {
   }
 }
 
+/**
+ * 获取对象类型  
+ * __v_skip || 非可拓展对象
+ * @param value 
+ * @returns 
+ */
 function getTargetType(value: Target) {
   return value[ReactiveFlags.SKIP] || !Object.isExtensible(value)
     ? TargetType.INVALID
-    : targetTypeMap(toRawType(value))
+    : targetTypeMap(toRawType(value)) // 将对象toString之后取后边
 }
 
 // only unwrap nested ref
