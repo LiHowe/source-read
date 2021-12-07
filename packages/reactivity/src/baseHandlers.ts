@@ -48,7 +48,7 @@ const arrayInstrumentations = /*#__PURE__*/ createArrayInstrumentations()
  * 创建数组方法监测对象
  * `includes`, `indexOf`, `lastIndexOf`,
  * `push`, `pop`, `shift`, `unshift`, `splice`
- * @returns 
+ * @returns
  */
 function createArrayInstrumentations() {
   const instrumentations: Record<string, Function> = {}
@@ -95,7 +95,7 @@ function createArrayInstrumentations() {
  * 创建proxy get代理方法
  * @param isReadonly 是否是只读对象
  * @param shallow 是否浅的
- * @returns 
+ * @returns
  */
 function createGetter(isReadonly = false, shallow = false) {
   // 闭包写法, 方便保留入参
@@ -137,7 +137,7 @@ function createGetter(isReadonly = false, shallow = false) {
     if (!isReadonly) {
       track(target, TrackOpTypes.GET, key)
     }
-    
+
     if (shallow) {
       return res
     }
@@ -164,12 +164,12 @@ const shallowSet = /*#__PURE__*/ createSetter(true)
 
 /**
  * 创建对象赋值handler
- * @param shallow 
- * @returns 
+ * @param shallow
+ * @returns
  */
 function createSetter(shallow = false) {
   /**
-   * 对象赋值handler 
+   * 对象赋值handler
    */
   return function set(
     target: object,
@@ -197,20 +197,20 @@ function createSetter(shallow = false) {
     }
     // 标识: 目标对象是否有待设置的key
     const hadKey =
-    // 如果是设置数组下标
+    // 根据对象是否是数组来做不同判断
       isArray(target) && isIntegerKey(key)
-        ? Number(key) < target.length
-        : hasOwn(target, key)
+        ? Number(key) < target.length // 判断下标是否越界
+        : hasOwn(target, key) // 判断是否有对应key
     // 标识: 值是否设置成功
     const result = Reflect.set(target, key, value, receiver)
     // don't trigger if target is something up in the prototype chain of original
-    // 如果目标对象是原型链上的就不触发副作用
+    // 如果目标对象是原型链上的就不触发副作用 (如果是该对象的代理)
     if (target === toRaw(receiver)) {
       if (!hadKey) {
         // key不存在于原始对象, 则为新增值
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
-        // key存在于原始对象, 则为更新值
+        // key存在于原始对象, 则为更新值, 触发副作用
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }

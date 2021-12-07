@@ -92,6 +92,12 @@ export function effectScope(detached?: boolean) {
   return new EffectScope(detached)
 }
 
+/**
+ * 记录副作用的作用域  <br>
+ * 实际上就是将`effect` push到`scope`的`effects`中
+ * @param effect 副作用
+ * @param scope 范围
+ */
 export function recordEffectScope(
   effect: ReactiveEffect,
   scope?: EffectScope | null

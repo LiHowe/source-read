@@ -54,7 +54,13 @@ export type DebuggerEventExtraInfo = {
   oldTarget?: Map<any, any> | Set<any>
 }
 
+/**
+ * 副作用栈
+ */
 const effectStack: ReactiveEffect[] = []
+/**
+ * 当前激活的副作用
+ */
 let activeEffect: ReactiveEffect | undefined
 
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
@@ -62,25 +68,42 @@ export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
 /**
  * 响应式副作用
+ * 计算属性的原理
  */
 export class ReactiveEffect<T = any> {
+  /**
+   * 激活状态
+   */
   active = true
+  /**
+   * 依赖列表
+   */
   deps: Dep[] = []
 
   // can be attached after creation
+  /**
+   * 是否是计算属性
+   */
   computed?: boolean
+  /**
+   * 是否允许递归
+   */
   allowRecurse?: boolean
+  /**
+   * 停止时候的回调函数
+   */
   onStop?: () => void
   // dev only
   onTrack?: (event: DebuggerEvent) => void
   // dev only
   onTrigger?: (event: DebuggerEvent) => void
-
+  // 构造函数
   constructor(
     public fn: () => T,
     public scheduler: EffectScheduler | null = null,
     scope?: EffectScope | null
   ) {
+    // 将当前effect放入scope
     recordEffectScope(this, scope)
   }
 
@@ -109,8 +132,10 @@ export class ReactiveEffect<T = any> {
         trackOpBit = 1 << --effectTrackDepth
 
         resetTracking()
+        // 已完成的副作用出栈
         effectStack.pop()
         const n = effectStack.length
+        // 有请下一位
         activeEffect = n > 0 ? effectStack[n - 1] : undefined
       }
     }
@@ -142,11 +167,29 @@ export interface DebuggerOptions {
   onTrigger?: (event: DebuggerEvent) => void
 }
 
+/**
+ * 副作用选项
+ */
 export interface ReactiveEffectOptions extends DebuggerOptions {
+  /**
+   * 是否懒加载(定义时不执行)
+   */
   lazy?: boolean
+  /**
+   * 周期执行函数
+   */
   scheduler?: EffectScheduler
+  /**
+   * 影响范围
+   */
   scope?: EffectScope
+  /**
+   * 是否允许递归
+   */
   allowRecurse?: boolean
+  /**
+   * 执行后的回调函数
+   */
   onStop?: () => void
 }
 
@@ -155,6 +198,11 @@ export interface ReactiveEffectRunner<T = any> {
   effect: ReactiveEffect
 }
 
+/**
+ * 创建副作用
+ * @param fn
+ * @param options
+ */
 export function effect<T = any>(
   fn: () => T,
   options?: ReactiveEffectOptions
@@ -206,7 +254,7 @@ export function resetTracking() {
  * @param target 目标对象
  * @param type 追踪类型
  * @param key 属性名
- * @returns 
+ * @returns
  */
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (!isTracking()) {
@@ -276,6 +324,15 @@ export function trackEffects(
   }
 }
 
+/**
+ * 触发副作用, 在为对象赋值的时候触发
+ * @param target 目标对象
+ * @param type 触发操作类型
+ * @param key 属性名
+ * @param newValue 属性新值
+ * @param oldValue 属性旧值
+ * @param oldTarget 旧目标对象
+ */
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -284,25 +341,32 @@ export function trigger(
   oldValue?: unknown,
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
+  // 获取当前对象的依赖者
   const depsMap = targetMap.get(target)
+  // 如果没有被依赖, 直接返回
   if (!depsMap) {
     // never been tracked
     return
   }
-
+  // 初始化依赖
   let deps: (Dep | undefined)[] = []
+  // 如果当前操作属于集合被清空类型
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared
     // trigger all effects for target
+    // 把当前对象的所有属性的依赖都收集
     deps = [...depsMap.values()]
   } else if (key === 'length' && isArray(target)) {
+    // 如果更改数组对象的length属性,
     depsMap.forEach((dep, key) => {
+      // 收集length对应依赖 和 在新数组长度及之后的元素依赖
       if (key === 'length' || key >= (newValue as number)) {
         deps.push(dep)
       }
     })
   } else {
     // schedule runs for SET | ADD | DELETE
+    // 如果key不是undefined
     if (key !== void 0) {
       deps.push(depsMap.get(key))
     }
@@ -311,6 +375,7 @@ export function trigger(
     switch (type) {
       case TriggerOpTypes.ADD:
         if (!isArray(target)) {
+          // TODO: ITERATE_KEY对应什么依赖
           deps.push(depsMap.get(ITERATE_KEY))
           if (isMap(target)) {
             deps.push(depsMap.get(MAP_KEY_ITERATE_KEY))
@@ -349,6 +414,7 @@ export function trigger(
       }
     }
   } else {
+    // 合并依赖进行调用
     const effects: ReactiveEffect[] = []
     for (const dep of deps) {
       if (dep) {
@@ -363,16 +429,24 @@ export function trigger(
   }
 }
 
+/**
+ * 触发副作用(触发依赖方法)
+ * @param dep 对象属性值对应依赖
+ * @param debuggerEventExtraInfo 用于开发环境
+ */
 export function triggerEffects(
   dep: Dep | ReactiveEffect[],
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
 ) {
   // spread into array for stabilization
+  // 遍历副作用
   for (const effect of isArray(dep) ? dep : [...dep]) {
+    // 如果遍历到的副作用不是正在使用中的 或者 副作用允许递归调用
     if (effect !== activeEffect || effect.allowRecurse) {
       if (__DEV__ && effect.onTrigger) {
         effect.onTrigger(extend({ effect }, debuggerEventExtraInfo))
       }
+      // 执行副作用影响
       if (effect.scheduler) {
         effect.scheduler()
       } else {

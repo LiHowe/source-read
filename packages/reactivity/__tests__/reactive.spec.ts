@@ -19,7 +19,7 @@ describe('reactivity/reactive', () => {
   })
 
   test('proto', () => {
-    const obj = {}
+    const obj: { sub?: unknown } = {}
     const reactiveObj = reactive(obj)
     expect(isReactive(reactiveObj)).toBe(true)
     // read prop of reactiveObject will cause reactiveObj[prop] to be reactive
@@ -30,8 +30,12 @@ describe('reactivity/reactive', () => {
     const reactiveOther = reactive(otherObj)
     expect(isReactive(reactiveOther)).toBe(true)
     expect(reactiveOther.data[0]).toBe('a')
+    Reflect.set(reactiveObj, 'sub', {
+      name: 'sub'
+    })
+    expect(isReactive(reactiveObj['sub'])).toBe(true)
   })
-
+  // 嵌套响应式测试
   test('nested reactives', () => {
     const original = {
       nested: {
@@ -40,6 +44,7 @@ describe('reactivity/reactive', () => {
       array: [{ bar: 2 }]
     }
     const observed = reactive(original)
+    // 响应式对象的属性读取会导致属性值也是响应式对象
     expect(isReactive(observed.nested)).toBe(true)
     expect(isReactive(observed.array)).toBe(true)
     expect(isReactive(observed.array[0])).toBe(true)

@@ -19,9 +19,24 @@ export const enum TrackOpTypes {
   ITERATE = 'iterate'
 }
 
+/**
+ * 触发操作类型
+ */
 export const enum TriggerOpTypes {
+  /**
+   * 赋值
+   */
   SET = 'set',
+  /**
+   * 新增
+   */
   ADD = 'add',
+  /**
+   * 删除
+   */
   DELETE = 'delete',
+  /**
+   * 清空
+   */
   CLEAR = 'clear'
 }

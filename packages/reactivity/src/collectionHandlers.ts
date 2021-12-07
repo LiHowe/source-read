@@ -15,6 +15,13 @@ const toShallow = <T extends unknown>(value: T): T => value
 const getProto = <T extends CollectionTypes>(v: T): any =>
   Reflect.getPrototypeOf(v)
 
+/**
+ * 集合对象获取元素
+ * @param target 集合对象
+ * @param key 键
+ * @param isReadonly 是否是只读对象
+ * @param isShallow 是否是浅层模式
+ */
 function get(
   target: MapTypes,
   key: unknown,
@@ -23,14 +30,20 @@ function get(
 ) {
   // #1772: readonly(reactive(Map)) should return readonly + reactive version
   // of the value
+  // 获取响应式对象的源对象
   target = (target as any)[ReactiveFlags.RAW]
+  // 将源对象和属性转化为普通对象
   const rawTarget = toRaw(target)
   const rawKey = toRaw(key)
+  // 如果key是响应式对象
   if (key !== rawKey) {
+    // 追踪副作用
     !isReadonly && track(rawTarget, TrackOpTypes.GET, key)
   }
   !isReadonly && track(rawTarget, TrackOpTypes.GET, rawKey)
+  // 获取原型的has方法
   const { has } = getProto(rawTarget)
+  // 根据对象的类型来返回对应类型包装的结果值
   const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive
   if (has.call(rawTarget, key)) {
     return wrap(target.get(key))
@@ -166,6 +179,12 @@ interface IterationResult {
   done: boolean
 }
 
+/**
+ * 创建迭代方法
+ * @param method 方法
+ * @param isReadonly 只读
+ * @param isShallow 浅
+ */
 function createIterableMethod(
   method: string | symbol,
   isReadonly: boolean,
@@ -223,6 +242,9 @@ function createReadonlyMethod(type: TriggerOpTypes): Function {
   }
 }
 
+/**
+ * 创建
+ */
 function createInstrumentations() {
   const mutableInstrumentations: Record<string, Function> = {
     get(this: MapTypes, key: unknown) {
@@ -327,6 +349,11 @@ const [
   shallowReadonlyInstrumentations
 ] = /* #__PURE__*/ createInstrumentations()
 
+/**
+ * 创建数组监听捕获器
+ * @param isReadonly 是否是只读对象
+ * @param shallow 是否是浅处理
+ */
 function createInstrumentationGetter(isReadonly: boolean, shallow: boolean) {
   const instrumentations = shallow
     ? isReadonly
