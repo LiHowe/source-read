@@ -353,6 +353,7 @@ export interface Router {
  * @param options - {@link RouterOptions}
  */
 export function createRouter(options: RouterOptions): Router {
+  debugger
   const matcher = createRouterMatcher(options.routes, options)
   const parseQuery = options.parseQuery || originalParseQuery
   const stringifyQuery = options.stringifyQuery || originalStringifyQuery

@@ -4,26 +4,27 @@ importers:
 
   .:
     specifiers:
-      typescript: ^4.5.4
-      vitepress: ^0.20.10
-    devDependencies:
-      typescript: registry.npmmirror.com/typescript/4.5.4
-      vitepress: registry.npmmirror.com/vitepress/0.20.10
-
-  example:
-    specifiers:
       '@vitejs/plugin-vue': ^2.0.0
-      typescript: ^4.4.4
+      typescript: ^4.5.4
       vite: ^2.7.2
-      vue: ^3.2.25
-      vue-router: 4.0.12
-      vue-tsc: ^0.29.8
+      vitepress: ^0.20.10
+      vue: ^3.2.26
     dependencies:
       vue: registry.npmmirror.com/vue/3.2.26
     devDependencies:
       '@vitejs/plugin-vue': registry.npmmirror.com/@vitejs/plugin-vue/2.0.1_vite@2.7.10+vue@3.2.26
       typescript: registry.npmmirror.com/typescript/4.5.4
       vite: registry.npmmirror.com/vite/2.7.10
+      vitepress: registry.npmmirror.com/vitepress/0.20.10
+
+  example:
+    specifiers:
+      vue: ^3.2.25
+      vue-router: 4.0.12
+      vue-tsc: ^0.29.8
+    dependencies:
+      vue: registry.npmmirror.com/vue/3.2.26
+    devDependencies:
       vue-router: link:../source
       vue-tsc: registry.npmmirror.com/vue-tsc/0.29.8_typescript@4.5.4
 
@@ -3551,7 +3552,7 @@ packages:
     dev: true
 
   registry.nlark.com/resolve/1.20.0:
-    resolution: {integrity: sha1-YpoBP7P3B1XW8LeTXMHCxTeLGXU=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/resolve/download/resolve-1.20.0.tgz}
+    resolution: {integrity: sha1-YpoBP7P3B1XW8LeTXMHCxTeLGXU=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/resolve/download/resolve-1.20.0.tgz?cache=0&sync_timestamp=1631501917799&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fresolve%2Fdownload%2Fresolve-1.20.0.tgz}
     name: resolve
     version: 1.20.0
     dependencies:
@@ -6430,7 +6431,7 @@ packages:
     dev: true
 
   registry.npmmirror.com/csstype/2.6.19:
-    resolution: {integrity: sha512-ZVxXaNy28/k3kJg0Fou5MiYpp88j7H9hLZp8PDC3jV0WFjfH5E9xHb56L0W59cPbKbcHXeP4qyT8PrHp8t6LcQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/csstype/download/csstype-2.6.19.tgz}
+    resolution: {integrity: sha512-ZVxXaNy28/k3kJg0Fou5MiYpp88j7H9hLZp8PDC3jV0WFjfH5E9xHb56L0W59cPbKbcHXeP4qyT8PrHp8t6LcQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/csstype/download/csstype-2.6.19.tgz?cache=0&sync_timestamp=1637224567041&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fcsstype%2Fdownload%2Fcsstype-2.6.19.tgz}
     name: csstype
     version: 2.6.19
 

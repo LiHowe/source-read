@@ -62,6 +62,10 @@ export function createRouterMatcher(
   // normalized ordered array of matchers
   const matchers: RouteRecordMatcher[] = []
   const matcherMap = new Map<RouteRecordName, RouteRecordMatcher>()
+  // 合并选项
+  // strict: 路径后添加/
+  // end: 还未找到
+  // sensitive: 大小写敏感
   globalOptions = mergeOptions(
     { strict: false, end: true, sensitive: false } as PathParserOptions,
     globalOptions
@@ -78,6 +82,7 @@ export function createRouterMatcher(
   ) {
     // used later on to remove by name
     const isRootAdd = !originalRecord
+    // 标准化用户定义的路由记录
     const mainNormalizedRecord = normalizeRouteRecord(record)
     // we might be the child of an alias
     mainNormalizedRecord.aliasOf = originalRecord && originalRecord.record

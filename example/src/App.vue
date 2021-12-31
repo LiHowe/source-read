@@ -1,12 +1,9 @@
 <script setup lang="ts">
-
+  import Nav from './components/Nav.vue'
 </script>
 
 <template>
-  <nav class="nav">
-    <router-link to="/">HelloWorld</router-link>
-    <router-link to="/demo">Demo</router-link>
-  </nav>
+  <Nav />
   <main>
     <router-view></router-view>
   </main>

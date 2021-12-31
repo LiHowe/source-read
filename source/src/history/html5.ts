@@ -182,6 +182,7 @@ function useHistoryStateNavigation(base: string) {
   }
   const historyState: ValueContainer<StateEntry> = { value: history.state }
   // build current history entry as this is a fresh navigation
+  // 用户手动跳转的情况(没有state)
   if (!historyState.value) {
     changeLocation(
       currentLocation.value,
