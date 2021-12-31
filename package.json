@@ -1,0 +1,29 @@
+{
+  "name": "source-read",
+  "version": "1.0.0",
+  "description": "The source code is fork from [vuejs/vue-router-next](https://github.com/vuejs/vue-router-next.git), package version: `4.0.12`",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:serve": "vitepress serve docs",
+    "example" : "vite example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LiHowe/source-read.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LiHowe/source-read/issues"
+  },
+  "homepage": "https://github.com/LiHowe/source-read#readme",
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "vitepress": "^0.20.10"
+  }
+}
