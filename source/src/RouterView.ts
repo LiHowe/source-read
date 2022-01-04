@@ -54,10 +54,12 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
 
   setup(props, { attrs, slots }) {
     __DEV__ && warnDeprecatedUsage()
-
+    // 注入当前路由
     const injectedRoute = inject(routerViewLocationKey)!
     const routeToDisplay = computed(() => props.route || injectedRoute.value)
+    // 路由深度
     const depth = inject(viewDepthKey, 0)
+    // 匹配的路由
     const matchedRouteRef = computed<RouteLocationMatched | undefined>(
       () => routeToDisplay.value.matched[depth]
     )
@@ -70,6 +72,7 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
 
     // watch at the same time the component instance, the route record we are
     // rendering, and the name
+    // 同时监听 组件实例, 我们渲染的路由记录(to) 和 名称
     watch(
       () => [viewRef.value, matchedRouteRef.value, props.name] as const,
       ([instance, to, name], [oldInstance, from, oldName]) => {

@@ -354,34 +354,42 @@ export interface Router {
  */
 export function createRouter(options: RouterOptions): Router {
   debugger
+  // obj: 创建路由匹配器
   const matcher = createRouterMatcher(options.routes, options)
+  // fn: 解析路由Query
   const parseQuery = options.parseQuery || originalParseQuery
+  // fn: 将Query字符串化
   const stringifyQuery = options.stringifyQuery || originalStringifyQuery
+  // obj: 获取历史记录对象(通过CreateWebHistory等方法创建)
   const routerHistory = options.history
   if (__DEV__ && !routerHistory)
     throw new Error(
       'Provide the "history" option when calling "createRouter()":' +
         ' https://next.router.vuejs.org/api/#history.'
     )
-
+  // 初始化路由守卫
   const beforeGuards = useCallbacks<NavigationGuardWithThis<undefined>>()
   const beforeResolveGuards = useCallbacks<NavigationGuardWithThis<undefined>>()
   const afterGuards = useCallbacks<NavigationHookAfter>()
+  // 初始化'当前路由'对象, 使用路由默认值进行浅层引用
   const currentRoute = shallowRef<RouteLocationNormalizedLoaded>(
     START_LOCATION_NORMALIZED
   )
   let pendingLocation: RouteLocation = START_LOCATION_NORMALIZED
 
   // leave the scrollRestoration if no scrollBehavior is provided
+  // 如果没提供 '滚动行为', 则默认切换路由回到页面顶部
   if (isBrowser && options.scrollBehavior && 'scrollRestoration' in history) {
     history.scrollRestoration = 'manual'
   }
-
+  // fn: 标准化路由Params
   const normalizeParams = applyToParams.bind(
     null,
     paramValue => '' + paramValue
   )
+  // fn: 编码 Params
   const encodeParams = applyToParams.bind(null, encodeParam)
+  // fn: 解码 Params
   const decodeParams: (params: RouteParams | undefined) => RouteParams =
     // @ts-expect-error: intentionally avoid the type check
     applyToParams.bind(null, decode)
@@ -1057,8 +1065,9 @@ export function createRouter(options: RouterOptions): Router {
   }
 
   // Initialization and Errors
-
+  // fn: 准备状态处理方法
   let readyHandlers = useCallbacks<OnReadyCallback>()
+  // fn: 错误状态处理方法
   let errorHandlers = useCallbacks<_ErrorHandler>()
   let ready: boolean
 
@@ -1163,7 +1172,10 @@ export function createRouter(options: RouterOptions): Router {
     isReady,
 
     install(app: App) {
+      debugger
+      // 保留this
       const router = this
+      // 定义全局路由组件 <router-link> 和 <router-view>
       app.component('RouterLink', RouterLink)
       app.component('RouterView', RouterView)
 
@@ -1183,13 +1195,13 @@ export function createRouter(options: RouterOptions): Router {
         !started &&
         currentRoute.value === START_LOCATION_NORMALIZED
       ) {
-        // see above
+        // 用于客户端初始化路由， 来避免路由用于多个App的时候push多次
         started = true
         push(routerHistory.location).catch(err => {
           if (__DEV__) warn('Unexpected error when starting the router:', err)
         })
       }
-
+      // 响应式路由对象, 相当于currentRoute的computed版本
       const reactiveRoute = {} as {
         [k in keyof RouteLocationNormalizedLoaded]: ComputedRef<
           RouteLocationNormalizedLoaded[k]
@@ -1199,17 +1211,21 @@ export function createRouter(options: RouterOptions): Router {
         // @ts-expect-error: the key matches
         reactiveRoute[key] = computed(() => currentRoute.value[key]) // currentRoute是浅层ref, 其value不是响应式的
       }
-
+      // 全局注入 当前路由
       app.provide(routerKey, router)
       app.provide(routeLocationKey, reactive(reactiveRoute))
       app.provide(routerViewLocationKey, currentRoute)
 
       const unmountApp = app.unmount
+      // 标识当前vue实例是安装过的
       installedApps.add(app)
+      // 覆写vue实例卸载方法
       app.unmount = function () {
         installedApps.delete(app)
         // the router is not attached to an app anymore
+        // 当当前vue实例是vue-router的最后一个使用者的时候
         if (installedApps.size < 1) {
+          // 还原vue-router状态
           // invalidate the current navigation
           pendingLocation = START_LOCATION_NORMALIZED
           removeHistoryListener && removeHistoryListener()

@@ -87,12 +87,15 @@ export type UseLinkOptions = VueUseOptions<RouterLinkOptions>
 
 // TODO: we could allow currentRoute as a prop to expose `isActive` and
 // `isExactActive` behavior should go through an RFC
+// 传入组件的props
 export function useLink(props: UseLinkOptions) {
+  // 路由实例
   const router = inject(routerKey)!
+  // 当前路由
   const currentRoute = inject(routeLocationKey)!
 
   const route = computed(() => router.resolve(unref(props.to)))
-
+  // 当前激活的路由记录下标
   const activeRecordIndex = computed<number>(() => {
     const { matched } = route.value
     const { length } = matched
@@ -122,12 +125,13 @@ export function useLink(props: UseLinkOptions) {
         : index
     )
   })
-
+  // 路由是否激活 (子路径的路由激活也会导致当前路由处于激活状态 .router-link-active)
   const isActive = computed<boolean>(
     () =>
       activeRecordIndex.value > -1 &&
       includesParams(currentRoute.params, route.value.params)
   )
+  // 是否精确激活 (只有当前确切的路由激活 .router-link-exact-active)
   const isExactActive = computed<boolean>(
     () =>
       activeRecordIndex.value > -1 &&
@@ -206,6 +210,7 @@ export const RouterLinkImpl = /*#__PURE__*/ defineComponent({
     const { options } = inject(routerKey)!
 
     const elClass = computed(() => ({
+      // 优先使用组件级定义的`activeClass` 其次是全局定义的 `linkActiveClass` 最后是默认值
       [getLinkClass(
         props.activeClass,
         options.linkActiveClass,
@@ -222,9 +227,10 @@ export const RouterLinkImpl = /*#__PURE__*/ defineComponent({
         'router-link-exact-active'
       )]: link.isExactActive,
     }))
-
+    debugger
     return () => {
       const children = slots.default && slots.default(link)
+      // props设置了custom, 表明使用自定义标签
       return props.custom
         ? children
         : h(

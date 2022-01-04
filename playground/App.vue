@@ -12,185 +12,162 @@
         </p>
       </section>
     </div>
-    <!-- <section class="info">
-      Name:
-      <pre id="name">{{ currentLocation.name }}</pre>
-    </section>
-
-    <section class="info">
-      Params:
-      <pre id="params">{{ currentLocation.params }}</pre>
-    </section>
-
-    <section class="info">
-      Query:
-      <pre id="query">{{ currentLocation.query }}</pre>
-    </section>
-
-    <section class="info">
-      Hash:
-      <pre id="hash">{{ currentLocation.hash }}</pre>
-    </section>
-
-    <section class="info">
-      FullPath:
-      <pre id="fullPath">{{ currentLocation.fullPath }}</pre>
-    </section>
-
-    <section class="info">
-      path:
-      <pre id="path">{{ currentLocation.path }}</pre>
-    </section> -->
 
     <hr />
 
+    <div class="content">
+      <ul class="navigator">
+        <li>
+          <router-link to="/n/%E2%82%AC">/n/%E2%82%AC (测试转义字符€)</router-link>
+        </li>
+        <li>
+          <router-link :to="{ name: 'docs', params: { id: '€uro' } }"
+            >/docs/€uro (携带params)</router-link
+          >
+        </li>
+        <li>
+          <router-link :to="{ path: '/', query: { currency: '€uro', é: 'e' } }"
+            >/currency=€uro&é=e (object)</router-link
+          >
+        </li>
+        <li>
+          <router-link to="/documents/€">/n/€</router-link>
+        </li>
+        <li>
+          <a href="/documents/%E2%82%AC">/documents/%E2%82%AC (force reload)</a>
+        </li>
+        <li>
+          <a href="/documents/€">/documents/€ (force reload): not valid tho</a>
+        </li>
+        <li>
+          <router-link to="/home">Home (redirects)</router-link>
+        </li>
+        <li>
+          <router-link to="/">Home</router-link>
+        </li>
+        <li>
+          <AppLink to="/">AppLink Home</AppLink>
+        </li>
+        <li>
+          <router-link to="/always-redirect">/always-redirect</router-link>
+        </li>
+        <li>
+          <router-link to="/children">/children</router-link>
+        </li>
+        <li>
+          <router-link to="/children/alias">/children/alias</router-link>
+        </li>
+        <li>
+          <router-link :to="{ name: 'default-child' }"
+            >/children (child named)</router-link
+          >
+        </li>
+        <li>
+          <router-link :to="{ name: 'WithChildren' }"
+            >/children (parent named)</router-link
+          >
+        </li>
+        <li>
+          <router-link to="/children/a">/children/a</router-link>
+        </li>
+        <li>
+          <router-link to="/children/b">/children/b</router-link>
+        </li>
+        <li>
+          <router-link to="/children/b/a2">/children/b/a2</router-link>
+        </li>
+        <li>
+          <router-link to="/children/b/b2">/children/b/b2</router-link>
+        </li>
+        <li>
+          <router-link to="/nested">/nested</router-link>
+        </li>
+        <li>
+          <router-link to="/anidado">/anidado</router-link>
+        </li>
+        <li>
+          <router-link to="/long-0">/long-0</router-link>
+        </li>
+        <li>
+          <router-link to="/users/5">/users/5</router-link>
+        </li>
+        <li>
+          <router-link
+            :to="{
+              name: 'user',
+              params: { id: '' + (Number(currentLocation.params.id || 0) + 1) },
+            }"
+            >/users/{{ Number(currentLocation.params.id || 0) + 1 }}</router-link
+          >
+        </li>
+        <li>
+          <router-link to="/with-data">/with-data</router-link>
+        </li>
+        <li>
+          <router-link to="/cant-leave">/cant-leave</router-link>
+        </li>
+        <li>
+          <router-link :to="{ name: 'docs', params: { id: 'é' } }"
+            >/docs/é</router-link
+          >
+        </li>
+        <li>
+          <router-link to="/rep">/rep</router-link>
+        </li>
+        <li>
+          <router-link to="/rep/a">/rep/a</router-link>
+        </li>
+        <li>
+          <router-link to="/rep/a/b">/rep/a/b</router-link>
+        </li>
+        <li>
+          <router-link to="/parent/1">/parent/1</router-link>
+        </li>
+        <li>
+          <router-link to="/p/1">/p/1</router-link>
+        </li>
+        <li>
+          <router-link to="/parent/1/as-absolute-a"
+            >/parent/1/as-absolute-a</router-link
+          >
+        </li>
+        <li>
+          <router-link to="/p/1/as-absolute-a">/p/1/as-absolute-a</router-link>
+        </li>
+        <li>
+          <router-link to="/p_1/absolute-a">/p_1/absolute-a</router-link>
+        </li>
+      </ul>
+      <div>
+        <button @click="toggleViewName">Toggle view</button>
+        <Suspense>
+          <template #default>
+            <router-view :name="viewName" v-slot="{ Component, route }">
+              <transition
+                :name="route.meta.transition || 'fade'"
+                mode="out-in"
+                @before-enter="flushWaiter"
+                @before-leave="setupWaiter"
+              >
+                <keep-alive>
+                  <component
+                    :is="Component"
+                    :key="route.name === 'repeat' ? route.path : undefined"
+                  />
+                </keep-alive>
+              </transition>
+            </router-view>
+          </template>
+          <template #fallback> Loading... </template>
+        </Suspense>
+      </div>
+    </div>
     <label>
       <input type="checkbox" v-model="state.cancelNextNavigation" /> Cancel Next
       Navigation
     </label>
-    <ul>
-      <li>
-        <router-link to="/n/%E2%82%AC">/n/%E2%82%AC</router-link>
-      </li>
-      <li>
-        <router-link :to="{ name: 'docs', params: { id: '€uro' } }"
-          >/docs/€uro (object)</router-link
-        >
-      </li>
-      <li>
-        <router-link :to="{ path: '/', query: { currency: '€uro', é: 'e' } }"
-          >/currency=€uro&é=e (object)</router-link
-        >
-      </li>
-      <li>
-        <router-link to="/documents/€">/n/€</router-link>
-      </li>
-      <li>
-        <a href="/documents/%E2%82%AC">/documents/%E2%82%AC (force reload)</a>
-      </li>
-      <li>
-        <a href="/documents/€">/documents/€ (force reload): not valid tho</a>
-      </li>
-      <li>
-        <router-link to="/home">Home (redirects)</router-link>
-      </li>
-      <li>
-        <router-link to="/">Home</router-link>
-      </li>
-      <li>
-        <AppLink to="/">AppLink Home</AppLink>
-      </li>
-      <li>
-        <router-link to="/always-redirect">/always-redirect</router-link>
-      </li>
-      <li>
-        <router-link to="/children">/children</router-link>
-      </li>
-      <li>
-        <router-link to="/children/alias">/children/alias</router-link>
-      </li>
-      <li>
-        <router-link :to="{ name: 'default-child' }"
-          >/children (child named)</router-link
-        >
-      </li>
-      <li>
-        <router-link :to="{ name: 'WithChildren' }"
-          >/children (parent named)</router-link
-        >
-      </li>
-      <li>
-        <router-link to="/children/a">/children/a</router-link>
-      </li>
-      <li>
-        <router-link to="/children/b">/children/b</router-link>
-      </li>
-      <li>
-        <router-link to="/children/b/a2">/children/b/a2</router-link>
-      </li>
-      <li>
-        <router-link to="/children/b/b2">/children/b/b2</router-link>
-      </li>
-      <li>
-        <router-link to="/nested">/nested</router-link>
-      </li>
-      <li>
-        <router-link to="/anidado">/anidado</router-link>
-      </li>
-      <li>
-        <router-link to="/long-0">/long-0</router-link>
-      </li>
-      <li>
-        <router-link to="/users/5">/users/5</router-link>
-      </li>
-      <li>
-        <router-link
-          :to="{
-            name: 'user',
-            params: { id: '' + (Number(currentLocation.params.id || 0) + 1) },
-          }"
-          >/users/{{ Number(currentLocation.params.id || 0) + 1 }}</router-link
-        >
-      </li>
-      <li>
-        <router-link to="/with-data">/with-data</router-link>
-      </li>
-      <li>
-        <router-link to="/cant-leave">/cant-leave</router-link>
-      </li>
-      <li>
-        <router-link :to="{ name: 'docs', params: { id: 'é' } }"
-          >/docs/é</router-link
-        >
-      </li>
-      <li>
-        <router-link to="/rep">/rep</router-link>
-      </li>
-      <li>
-        <router-link to="/rep/a">/rep/a</router-link>
-      </li>
-      <li>
-        <router-link to="/rep/a/b">/rep/a/b</router-link>
-      </li>
-      <li>
-        <router-link to="/parent/1">/parent/1</router-link>
-      </li>
-      <li>
-        <router-link to="/p/1">/p/1</router-link>
-      </li>
-      <li>
-        <router-link to="/parent/1/as-absolute-a"
-          >/parent/1/as-absolute-a</router-link
-        >
-      </li>
-      <li>
-        <router-link to="/p/1/as-absolute-a">/p/1/as-absolute-a</router-link>
-      </li>
-      <li>
-        <router-link to="/p_1/absolute-a">/p_1/absolute-a</router-link>
-      </li>
-    </ul>
-    <button @click="toggleViewName">Toggle view</button>
-    <Suspense>
-      <template #default>
-        <router-view :name="viewName" v-slot="{ Component, route }">
-          <transition
-            :name="route.meta.transition || 'fade'"
-            mode="out-in"
-            @before-enter="flushWaiter"
-            @before-leave="setupWaiter"
-          >
-            <keep-alive>
-              <component
-                :is="Component"
-                :key="route.name === 'repeat' ? route.path : undefined"
-              />
-            </keep-alive>
-          </transition>
-        </router-view>
-      </template>
-      <template #fallback> Loading... </template>
-    </Suspense>
+    
+    
   </div>
 </template>
 
@@ -257,5 +234,34 @@ pre {
 .info-detail {
   display: grid;
   grid-template-columns: repeat(3, auto);
+}
+.content {
+  display: grid;
+  grid-template-columns: 30% auto;
+}
+.navigator {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.navigator li {
+  line-height: 2;
+}
+
+.navigator li a {
+  color: #2196f3;
+  padding-left: 15px;
+  position: relative;
+}
+.navigator li a::before {
+  content: '→';
+  font-weight: bold;
+  color: white;
+  position: absolute;
+  left: 0;
+  transition: all .25s;
+}
+.navigator .router-link-exact-active::before {
+  color: red;
 }
 </style>
