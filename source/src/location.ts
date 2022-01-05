@@ -34,11 +34,10 @@ export const removeTrailingSlash = (path: string) =>
 
 /**
  * Transforms an URI into a normalized history location
- *
- * @param parseQuery
- * @param location - URI to normalize
- * @param currentLocation - current absolute location. Allows resolving relative
- * paths. Must start with `/`. Defaults to `/`
+ * 将URI转换为标准化的历史记录地址
+ * @param parseQuery query解析器
+ * @param location - URI to normalize, 待解析路径
+ * @param currentLocation - 当前解析路由绝对路径, 允许解析相对路径, 必须以 `/` 开头 
  * @returns a normalized history location
  */
 export function parseURL(
@@ -46,28 +45,31 @@ export function parseURL(
   location: string,
   currentLocation: string = '/'
 ): LocationNormalized {
+  // 初始化变量
   let path: string | undefined,
     query: LocationQuery = {},
     searchString = '',
     hash = ''
-
+  // 获取路径中 ? 和 # 的位置(分别对应query和hash)
   // Could use URL and URLSearchParams but IE 11 doesn't support it
   const searchPos = location.indexOf('?')
   const hashPos = location.indexOf('#', searchPos > -1 ? searchPos : 0)
-
+  // 如果有query标识(?)
   if (searchPos > -1) {
+    // 截取location至?之前
     path = location.slice(0, searchPos)
+    // 如果有#则截取 ?与#之间的字符串作为query字符串, 否则截取到路径末尾
     searchString = location.slice(
       searchPos + 1,
       hashPos > -1 ? hashPos : location.length
     )
-
+    // 将query字符串解析为query对象
     query = parseQuery(searchString)
   }
-
+  // 如果有hash标识(#)
   if (hashPos > -1) {
     path = path || location.slice(0, hashPos)
-    // keep the # character
+    // keep the # character, 保留#字符
     hash = location.slice(hashPos, location.length)
   }
 
@@ -190,8 +192,8 @@ function isEquivalentArray<T>(a: T[], b: T[] | T): boolean {
 
 /**
  * Resolves a relative path that starts with `.`.
- *
- * @param to - path location we are resolving
+ * 解析相对路径(字符串开头为.)
+ * @param to - 我们正在解析的路径
  * @param from - currentLocation.path, should start with `/`
  */
 export function resolveRelativePath(to: string, from: string): string {

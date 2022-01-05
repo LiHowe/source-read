@@ -27,7 +27,7 @@
         </li>
         <li>
           <router-link :to="{ path: '/', query: { currency: '€uro', é: 'e' } }"
-            >/currency=€uro&é=e (object)</router-link
+            >/currency=€uro&é=e (Home with query)</router-link
           >
         </li>
         <li>
@@ -166,8 +166,6 @@
       <input type="checkbox" v-model="state.cancelNextNavigation" /> Cancel Next
       Navigation
     </label>
-    
-    
   </div>
 </template>
 

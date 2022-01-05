@@ -88,25 +88,38 @@ export type UseLinkOptions = VueUseOptions<RouterLinkOptions>
 // TODO: we could allow currentRoute as a prop to expose `isActive` and
 // `isExactActive` behavior should go through an RFC
 // 传入组件的props
+/**
+ * 解析当前路由
+ * @param props 
+ * @returns 
+ */
 export function useLink(props: UseLinkOptions) {
   // 路由实例
   const router = inject(routerKey)!
   // 当前路由
   const currentRoute = inject(routeLocationKey)!
-
+  // 解析目标路由
   const route = computed(() => router.resolve(unref(props.to)))
   // 当前激活的路由记录下标
   const activeRecordIndex = computed<number>(() => {
+    // 匹配 目标 路由路径的路由
     const { matched } = route.value
+    // 获取匹配到路由的数量, 如果 > 1 则为嵌套路由
     const { length } = matched
+    // 获取最后一个符合的路由
     const routeMatched: RouteRecord | undefined = matched[length - 1]
+    // 匹配 当前 路由路径的路由
     const currentMatched = currentRoute.matched
+    // 如果当前路由没有匹配 或者 目标路由没有匹配, 则返回
     if (!routeMatched || !currentMatched.length) return -1
+    // 在 当前 匹配的路由记录中寻找与 目标 路由相同的路由记录
     const index = currentMatched.findIndex(
       isSameRouteRecord.bind(null, routeMatched)
     )
+    // 如果有相同记录, 直接返回
     if (index > -1) return index
     // possible parent record
+    // 找到父路由记录的path, 如果没有则为 ''
     const parentRecordPath = getOriginalPath(
       matched[length - 2] as RouteRecord | undefined
     )
@@ -138,7 +151,12 @@ export function useLink(props: UseLinkOptions) {
       activeRecordIndex.value === currentRoute.matched.length - 1 &&
       isSameRouteLocationParams(currentRoute.params, route.value.params)
   )
-
+  /**
+   * 使用 router.replace 或者 router.push 来进行路由跳转
+   * 具体用哪个取决于 router-link 组件的 props.replace
+   * @param e 鼠标事件
+   * @returns 
+   */
   function navigate(
     e: MouseEvent = {} as MouseEvent
   ): Promise<void | NavigationFailure> {
@@ -188,6 +206,7 @@ export function useLink(props: UseLinkOptions) {
 export const RouterLinkImpl = /*#__PURE__*/ defineComponent({
   name: 'RouterLink',
   props: {
+    // 目标路由地址
     to: {
       type: [String, Object] as PropType<RouteLocationRaw>,
       required: true,
@@ -227,10 +246,9 @@ export const RouterLinkImpl = /*#__PURE__*/ defineComponent({
         'router-link-exact-active'
       )]: link.isExactActive,
     }))
-    debugger
     return () => {
       const children = slots.default && slots.default(link)
-      // props设置了custom, 表明使用自定义标签
+      // props设置了custom, 表明使用自定义标签来代替a标签包裹
       return props.custom
         ? children
         : h(
@@ -270,7 +288,7 @@ export const RouterLink = RouterLinkImpl as unknown as {
 
   /**
    * Access to `useLink()` without depending on using vue-router
-   *
+   * 在不依赖vue-router的情况下来调用 `useLink()`
    * @internal
    */
   useLink: typeof useLink
@@ -320,6 +338,7 @@ function includesParams(
 
 /**
  * Get the original path value of a record by following its aliasOf
+ * 根据路径别名来获取路由记录的原始路径
  * @param record
  */
 function getOriginalPath(record: RouteRecord | undefined): string {
@@ -328,6 +347,7 @@ function getOriginalPath(record: RouteRecord | undefined): string {
 
 /**
  * Utility class to get the active class based on defaults.
+ * 获取router-link样式, 优先级 propClass -> globalClass -> defaultClass
  * @param propClass
  * @param globalClass
  * @param defaultClass

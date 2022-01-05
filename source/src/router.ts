@@ -353,7 +353,6 @@ export interface Router {
  * @param options - {@link RouterOptions}
  */
 export function createRouter(options: RouterOptions): Router {
-  debugger
   // obj: 创建路由匹配器
   const matcher = createRouterMatcher(options.routes, options)
   // fn: 解析路由Query
@@ -426,7 +425,7 @@ export function createRouter(options: RouterOptions): Router {
   function hasRoute(name: RouteRecordName): boolean {
     return !!matcher.getRecordMatcher(name)
   }
-
+  // 解析路由
   function resolve(
     rawLocation: Readonly<RouteLocationRaw>,
     currentLocation?: RouteLocationNormalizedLoaded
@@ -1172,7 +1171,6 @@ export function createRouter(options: RouterOptions): Router {
     isReady,
 
     install(app: App) {
-      debugger
       // 保留this
       const router = this
       // 定义全局路由组件 <router-link> 和 <router-view>

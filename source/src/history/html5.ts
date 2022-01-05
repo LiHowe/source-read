@@ -154,7 +154,7 @@ function useHistoryListeners(
 }
 
 /**
- * Creates a state object
+ * 创建 state 对象
  */
 function buildState(
   back: HistoryLocation | null,
@@ -173,6 +173,13 @@ function buildState(
   }
 }
 
+/**
+ * 使用历史状态导航
+ * 
+ * 主要是初始化state与一些方法定义
+ * @param base 路由根路径
+ * @returns 
+ */
 function useHistoryStateNavigation(base: string) {
   const { history, location } = window
 
@@ -184,6 +191,7 @@ function useHistoryStateNavigation(base: string) {
   // build current history entry as this is a fresh navigation
   // 用户手动跳转的情况(没有state)
   if (!historyState.value) {
+    // 设置默认state
     changeLocation(
       currentLocation.value,
       {
@@ -201,12 +209,24 @@ function useHistoryStateNavigation(base: string) {
     )
   }
 
+  /**
+   * 改变浏览器历史记录
+   * @param to 目标地址
+   * @param state 状态
+   * @param replace 是否替换历史
+   */
   function changeLocation(
     to: HistoryLocation,
     state: StateEntry,
     replace: boolean
   ): void {
     /**
+     * 如果我们在一个正常的域名上提供了根路径base, 我们必须尊重用户提供的base参数
+     * 因为 pushState() 将会使用它(base), 并且可能会抹去 `#` 前的所有东西
+     * 如果没有域名, `<base>` 标签没有任何意义
+     * 如果没有 `<base>` 标签, 我们可以在 `#` 后面使用任何东西
+     * 相关Issue: https://github.com/vuejs/vue-router-next/issues/685
+     * 
      * if a base tag is provided and we are on a normal domain, we have to
      * respect the provided `base` attribute because pushState() will use it and
      * potentially erase anything before the `#` like at
@@ -215,7 +235,11 @@ function useHistoryStateNavigation(base: string) {
      * there is no host, the `<base>` tag makes no sense and if there isn't a
      * base tag we can just use everything after the `#`.
      */
+    // 获取根路径 # 位置
     const hashIndex = base.indexOf('#')
+    // 拼接路径
+    // 如果根路径没有 #, 则使用 location.protocol + '//' + location.host
+    // 如果有 # , 且有域名和 `<base>` 标签, 则使用 base, 否则去掉 # 
     const url =
       hashIndex > -1
         ? (location.host && document.querySelector('base')
@@ -225,6 +249,7 @@ function useHistoryStateNavigation(base: string) {
     try {
       // BROWSER QUIRK
       // NOTE: Safari throws a SecurityError when calling this function 100 times in 30 seconds
+      // Safari有奇怪的问题, 在30秒内调用下面方法100次将会抛出一个 SecurityError
       history[replace ? 'replaceState' : 'pushState'](state, '', url)
       historyState.value = state
     } catch (err) {
@@ -239,6 +264,7 @@ function useHistoryStateNavigation(base: string) {
   }
 
   function replace(to: HistoryLocation, data?: HistoryState) {
+    // 合并 state
     const state: StateEntry = assign(
       {},
       history.state,
@@ -252,7 +278,7 @@ function useHistoryStateNavigation(base: string) {
       data,
       { position: historyState.value.position }
     )
-
+    
     changeLocation(to, state, true)
     currentLocation.value = to
   }
@@ -309,6 +335,7 @@ function useHistoryStateNavigation(base: string) {
  * @param base -
  */
 export function createWebHistory(base?: string): RouterHistory {
+  // 标准化根路径base
   base = normalizeBase(base)
 
   const historyNavigation = useHistoryStateNavigation(base)
