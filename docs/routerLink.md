@@ -1,7 +1,5 @@
 # RouterLink
 
-## 介绍
-
 文件位于 `src/RouterLink.ts`
 
 ### 问题

@@ -17,7 +17,7 @@
 
 覆盖vue-router的全局`Provide`的`routerViewLocationKey`
 
-并 `Provide`两个新的值:
+并为组件 `Provide` 两个新的值:
 
 + `viewDepthKey`: 当前路由深度
 + `matchedRouteKey`: 当前路由匹配的路由
