@@ -28,7 +28,7 @@
 2. 在失活的组件里调用 `beforeRouteLeave` 守卫。
 3. 调用全局的 `beforeEach` 守卫。
 4. 在重用的组件里调用 `beforeRouteUpdate` 守卫(2.2+)。
-5. 在路由配置里调用 `beforeEnter`。
+5. 在路由配置里调用 `beforeEnter`。 
 6. 解析异步路由组件。
 7. 在被激活的组件里调用 `beforeRouteEnter`。
 8. 调用全局的 `beforeResolve` 守卫(2.5+)。
@@ -39,7 +39,7 @@
 
 
 
-<img src="https://s2.loli.net/2022/01/06/GXcHVKpaxZbNgTA.png" alt="Untitled-2021-12-21-1349" style="zoom: 33%;" />
+![Untitled-2021-12-21-1349](https://s2.loli.net/2022/01/06/vLBksiIajJVPoQA.png)
 
 
 

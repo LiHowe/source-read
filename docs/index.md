@@ -20,15 +20,17 @@ home: true
 
 2. vue-router是如何匹配路由记录的
 
-3. vue-router-next 与 vue-router 的差异
+3. 如何取消导航 | 取消导航的几种方式
 
-4. `beforeRouterEnter`, `beforeRouteUpdate`, `beforeRouteLeave` 与 Vue的生命周期的执行顺序
+4. vue-router-next 与 vue-router 的差异
 
-5. 组件内路由守卫的实现
+5. `beforeRouterEnter`, `beforeRouteUpdate`, `beforeRouteLeave` 与 Vue的生命周期的执行顺序
+
+6. 组件内路由守卫的实现
 
    读取Vue组件的 `__vccOpts` 来获取vue的options, 再从中获取对应守卫函数.
 
-6. 路由切换时候两个Vue组件的生命周期调用顺序
+7. 路由切换时候两个Vue组件的生命周期调用顺序
 
    以 A.vue 和 B.vue 两个组件来说明:
 
@@ -55,7 +57,7 @@ home: true
    8. [B生命周期] `created`
    9. [A生命周期] `unmounted`
 
-7. 
+8. 
 
 
 

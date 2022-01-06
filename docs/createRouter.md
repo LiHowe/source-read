@@ -50,6 +50,76 @@ const router:Router = {
 8. 开发环境下注入 `devtools`
 
 
+
+### 初始化导航
+
+使用对应History对象的 `location` 来传入 `push` 方法触发首次路由行为
+
+
+
+### push & replace
+
+push用于触发导航, 与 `replace` 一样,都是调用了 `pushWithRedirect` 方法
+
+
+
+### pushWithRedirect
+
+1. 解析传入的目标路由(`to`)
+2. 判断目标路由是否需要重定向
+3. 调用 `navigate` 确认导航.
+4. 如果导航未失败的情况下, 调用 `finalizeNavigation` 来最终确认导航
+   1. 如果是用户触发的导航且不是首次导航, 则调用 `push` 或 `replace` 来改变URL
+   2. 更换当前路由值(`currentRoute`)
+   3. 调用 `handleScroll` 来应用 `scrollBehavior`
+   4. 调用 `markAsReady` 
+5. 触发 `afterEach` 守卫
+
+
+
+#### markAsReady
+
+1. 表明路由现在可用 `isReady = true`
+2. 调用 `setupListeners` 为 `routerHistory` 配置路由监听, 用来触发导航
+
+
+
+#### handleScroll
+
+1. 获取历史状态( `history.state` )中的滚动信息.
+
+2. 等待 vue `nextTick`
+
+   1. 调用 `scrollBehavior` 获取位置
+   2. 滚动到指定位置
+
+   
+
+### navigate
+
+收集各种守卫, 然后执行, 导航被确认.
+
+1. 收集路由记录变化(`leavingRecords, updatingRecords, enteringRecords`)
+
+2. 收集组件内 `beforeRouteLeave` 守卫
+
+3. 将 `leavingRecords` 中的 组件 `beforeRouteLeave` 守卫转化为 `Promise类型的方法`
+
+4. 顺序调用守卫(通过`promise.then`链式调用)
+
+   1. 全局配置 `beforeEach`
+
+   2. 组件守卫 `beforeRouteUpdate`
+
+   3. 路由配置 `beforeEnter`
+
+   4. 组件守卫 `beforeRouteEnter`
+
+   5. 全局守卫 `beforeResolve`
+
+      
+
+
 ## createRouterMatcher
 
 创建路由匹配器
