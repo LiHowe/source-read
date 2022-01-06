@@ -32,7 +32,7 @@ home: true
 
 7. 路由切换时候两个Vue组件的生命周期调用顺序
 
-   以 A.vue 和 B.vue 两个组件来说明:
+   以 `A.vue` 和 `B.vue` 两个组件来说明:
 
    **先进入A组件**
 
@@ -57,7 +57,7 @@ home: true
    8. [B生命周期] `created`
    9. [A生命周期] `unmounted`
 
-8. 
+   
 
 
 
