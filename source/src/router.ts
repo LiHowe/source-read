@@ -772,8 +772,9 @@ export function createRouter(options: RouterOptions): Router {
     to: RouteLocationNormalized,
     from: RouteLocationNormalizedLoaded
   ): Promise<any> {
+    // 路由守卫
     let guards: Lazy<any>[]
-
+    debugger
     const [leavingRecords, updatingRecords, enteringRecords] =
       extractChangingRecords(to, from)
 
@@ -857,7 +858,7 @@ export function createRouter(options: RouterOptions): Router {
           // clear existing enterCallbacks, these are added by extractComponentsGuards
           to.matched.forEach(record => (record.enterCallbacks = {}))
 
-          // check in-component beforeRouteEnter
+          // 检查并提取组件级的路由守卫方法
           guards = extractComponentsGuards(
             enteringRecords,
             'beforeRouteEnter',
@@ -1243,18 +1244,31 @@ export function createRouter(options: RouterOptions): Router {
 
   return router
 }
-
+/**
+ * 异步运行队列中的路由守卫, 
+ * @param guards 
+ * @returns 
+ */
 function runGuardQueue(guards: Lazy<any>[]): Promise<void> {
   return guards.reduce(
     (promise, guard) => promise.then(() => guard()),
     Promise.resolve()
   )
 }
-
+/**
+ * 返回路由路径变化记录, 包含
+ * + 改变了的路由记录: `updatingRecords`
+ * + 离开的路由记录: `leavingRecords`
+ * + 进入的路由记录: `enteringRecords`
+ * @param to 目标路由
+ * @param from 来源路由
+ * @returns 
+ */
 function extractChangingRecords(
   to: RouteLocationNormalized,
   from: RouteLocationNormalizedLoaded
 ) {
+  // 初始化记录数组
   const leavingRecords: RouteRecordNormalized[] = []
   const updatingRecords: RouteRecordNormalized[] = []
   const enteringRecords: RouteRecordNormalized[] = []
@@ -1262,12 +1276,14 @@ function extractChangingRecords(
   const len = Math.max(from.matched.length, to.matched.length)
   for (let i = 0; i < len; i++) {
     const recordFrom = from.matched[i]
+    // 如果 目标路由与来源路由有相同记录, 则记录路由更新(放入 `updatingRecords` ), 否则放入 `leavingRecords`
     if (recordFrom) {
       if (to.matched.find(record => isSameRouteRecord(record, recordFrom)))
         updatingRecords.push(recordFrom)
       else leavingRecords.push(recordFrom)
     }
     const recordTo = to.matched[i]
+    // 如果 目标路由 不在 来源路由 的匹配列表中, 则将 目标路由 放入 `enteringRecords`
     if (recordTo) {
       // the type doesn't matter because we are comparing per reference
       if (!from.matched.find(record => isSameRouteRecord(record, recordTo))) {

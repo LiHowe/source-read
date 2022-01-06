@@ -54,6 +54,16 @@ function createCurrentLocation(
   return path + search + hash
 }
 
+/**
+ * 创建历史记录监听器
+ * 
+ * 为window添加 popstate 和 beforeunload 事件监听
+ * @param base 路由base
+ * @param historyState 历史状态
+ * @param currentLocation 当前历史
+ * @param replace replace方法
+ * @returns 
+ */
 function useHistoryListeners(
   base: string,
   historyState: ValueContainer<StateEntry>,
@@ -337,8 +347,9 @@ function useHistoryStateNavigation(base: string) {
 export function createWebHistory(base?: string): RouterHistory {
   // 标准化根路径base
   base = normalizeBase(base)
-
+  // 初始化导航对象
   const historyNavigation = useHistoryStateNavigation(base)
+  // 添加为window添加事件监听
   const historyListeners = useHistoryListeners(
     base,
     historyNavigation.state,
@@ -349,7 +360,7 @@ export function createWebHistory(base?: string): RouterHistory {
     if (!triggerListeners) historyListeners.pauseListeners()
     history.go(delta)
   }
-
+  // 合并路由历史对象
   const routerHistory: RouterHistory = assign(
     {
       // it's overridden right after
@@ -362,7 +373,7 @@ export function createWebHistory(base?: string): RouterHistory {
     historyNavigation,
     historyListeners
   )
-
+  // 将 location  和 state 设置为只读
   Object.defineProperty(routerHistory, 'location', {
     enumerable: true,
     get: () => historyNavigation.location.value,

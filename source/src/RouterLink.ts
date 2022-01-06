@@ -161,6 +161,7 @@ export function useLink(props: UseLinkOptions) {
     e: MouseEvent = {} as MouseEvent
   ): Promise<void | NavigationFailure> {
     if (guardEvent(e)) {
+      debugger
       return router[unref(props.replace) ? 'replace' : 'push'](
         unref(props.to)
         // avoid uncaught errors are they are logged anyway

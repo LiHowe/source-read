@@ -19,11 +19,19 @@ import {
  * @returns a history object that can be passed to the router constructor
  */
 export function createMemoryHistory(base: string = ''): RouterHistory {
+  // 导航监听器
   let listeners: NavigationCallback[] = []
+  // 路由队列
   let queue: HistoryLocation[] = [START]
+  // 当前路由位置
   let position: number = 0
+  // 路由根路径
   base = normalizeBase(base)
 
+  /**
+   * 导航方法, 实质上是在控制路由队列queue
+   * @param location 
+   */
   function setLocation(location: HistoryLocation) {
     position++
     if (position === queue.length) {
@@ -35,7 +43,12 @@ export function createMemoryHistory(base: string = ''): RouterHistory {
       queue.push(location)
     }
   }
-
+  /**
+   * 触发监听器
+   * @param to 
+   * @param from 
+   * @param param2 
+   */
   function triggerListeners(
     to: HistoryLocation,
     from: HistoryLocation,

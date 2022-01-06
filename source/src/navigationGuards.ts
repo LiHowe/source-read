@@ -226,7 +226,7 @@ function canOnlyBeCalledOnce(
 }
 
 type GuardType = 'beforeRouteEnter' | 'beforeRouteUpdate' | 'beforeRouteLeave'
-
+// 提取组件内守卫
 export function extractComponentsGuards(
   matched: RouteRecordNormalized[],
   guardType: GuardType,
@@ -234,7 +234,7 @@ export function extractComponentsGuards(
   from: RouteLocationNormalizedLoaded
 ) {
   const guards: Array<() => Promise<void>> = []
-
+  debugger
   for (const record of matched) {
     for (const name in record.components) {
       let rawComponent = record.components[name]
@@ -280,7 +280,7 @@ export function extractComponentsGuards(
 
       // skip update and leave guards if the route component is not mounted
       if (guardType !== 'beforeRouteEnter' && !record.instances[name]) continue
-
+      // 判断组件是否是路由组件
       if (isRouteComponent(rawComponent)) {
         // __vccOpts is added by vue-class-component and contain the regular options
         const options: ComponentOptions =
@@ -288,7 +288,8 @@ export function extractComponentsGuards(
         const guard = options[guardType]
         guard && guards.push(guardToPromiseFn(guard, to, from, record, name))
       } else {
-        // start requesting the chunk already
+        // 如果不是路由组件, 则认为是懒加载组件
+        // 开始加载懒加载组件
         let componentPromise: Promise<
           RouteComponent | null | undefined | void
         > = (rawComponent as Lazy<RouteComponent>)()
@@ -299,7 +300,7 @@ export function extractComponentsGuards(
           )
           componentPromise = Promise.resolve(componentPromise as RouteComponent)
         }
-
+        
         guards.push(() =>
           componentPromise.then(resolved => {
             if (!resolved)
@@ -308,14 +309,18 @@ export function extractComponentsGuards(
                   `Couldn't resolve component "${name}" at "${record.path}"`
                 )
               )
+            // 获取组件内容
             const resolvedComponent = isESModule(resolved)
               ? resolved.default
               : resolved
             // replace the function with the resolved component
+            // 使用 加载完成的组件 替代 懒加载方法, 避免下次再次调用
             record.components[name] = resolvedComponent
             // __vccOpts is added by vue-class-component and contain the regular options
+            // __vccOpts包含了常规的组件options, 由vue class component添加 (作者对vue的源码及机制的了解)
             const options: ComponentOptions =
               (resolvedComponent as any).__vccOpts || resolvedComponent
+            // 获取对应路由守卫方法
             const guard = options[guardType]
             return guard && guardToPromiseFn(guard, to, from, record, name)()
           })
@@ -329,7 +334,7 @@ export function extractComponentsGuards(
 
 /**
  * Allows differentiating lazy components from functional components and vue-class-component
- *
+ * 允许将 懒加载组件与 functional组件和class组件做区分
  * @param component
  */
 function isRouteComponent(
